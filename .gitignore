@@ -1,0 +1,9 @@
+*.dproj
+*.dproj.local
+*.exe
+*.identcache
+*.stat
+*.dof
+*.cfg
+__history
+*.dcu
