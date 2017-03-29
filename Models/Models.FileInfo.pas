@@ -17,6 +17,7 @@ type
     fullPath: string;
     shortPath: string;
     ext: string;
+    dt: TDateTime;
     constructor Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
     function stateAsStr: string;
   end;

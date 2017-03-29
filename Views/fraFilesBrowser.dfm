@@ -39,13 +39,25 @@ object ViewFilesBrowser: TViewFilesBrowser
       Width = 59
       Height = 21
       Action = Repo.actFlatMode
+      AllowAllUp = True
     end
     object SpeedButton2: TSpeedButton
-      Left = 301
+      Left = 300
       Top = 11
       Width = 59
       Height = 21
       Action = Repo.actModifiedOnly
+      AllowAllUp = True
+      GroupIndex = 1
+    end
+    object SpeedButton3: TSpeedButton
+      Left = 365
+      Top = 11
+      Width = 83
+      Height = 21
+      Action = Repo.actShowIgnored
+      AllowAllUp = True
+      GroupIndex = 10
     end
     object edtWorkingCopyPath: TEdit
       Left = 10
@@ -82,8 +94,6 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     TabOrder = 2
     TreeOptions.SelectionOptions = [toFullRowSelect]
-    ExplicitLeft = -3
-    ExplicitTop = 38
     Columns = <
       item
         Position = 0

@@ -19,6 +19,7 @@ type
     fileList: TVirtualStringTree;
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
     procedure edtWorkingCopyPathChange(Sender: TObject);
   private
     FRootPath: string;
@@ -35,6 +36,9 @@ type
 implementation
 
 {$R *.dfm}
+
+uses
+  dmRepo;
 
 { TViewFilesBrowser }
 

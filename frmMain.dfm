@@ -20,7 +20,7 @@ object MainForm: TMainForm
     Top = 0
     Width = 984
     Height = 642
-    ActivePage = tabCommit
+    ActivePage = tabRepoView
     Align = alClient
     TabOrder = 0
     object tabRepoView: TTabSheet
@@ -33,7 +33,7 @@ object MainForm: TMainForm
         Align = alClient
         TabOrder = 0
         ExplicitLeft = 13
-        ExplicitTop = 160
+        ExplicitTop = 72
         inherited Splitter1: TSplitter
           Height = 481
         end
@@ -43,6 +43,7 @@ object MainForm: TMainForm
         end
         inherited Panel1: TPanel
           Width = 976
+          ExplicitTop = 0
         end
         inherited log: TMemo
           Top = 525
@@ -50,8 +51,6 @@ object MainForm: TMainForm
         end
         inherited dirTree: TVirtualStringTree
           Height = 481
-          ExplicitLeft = 0
-          ExplicitTop = 41
         end
         inherited fileList: TVirtualStringTree
           Width = 773
@@ -62,14 +61,18 @@ object MainForm: TMainForm
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
-      ExplicitLeft = 8
-      ExplicitTop = 22
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
-      ExplicitLeft = 52
-      ExplicitTop = 22
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar

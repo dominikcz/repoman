@@ -21,12 +21,22 @@ object Repo: TRepo
     object actModifiedOnly: TAction
       AutoCheck = True
       Caption = 'modified'
+      GroupIndex = 1
       Hint = 'toggle modified/all'
       OnExecute = refreshView
     end
     object actIgnore: TAction
       Caption = 'ignored'
+      GroupIndex = 2
       Hint = 'edit ignored list'
+    end
+    object actShowIgnored: TAction
+      AutoCheck = True
+      Caption = 'showIgnored'
+      Checked = True
+      GroupIndex = 10
+      Hint = 'toggle ignored'
+      OnExecute = actShowIgnoredExecute
     end
   end
 end

@@ -12,8 +12,8 @@ type
     StatusBar1: TStatusBar;
     tabRepoView: TTabSheet;
     tabCodeReview: TTabSheet;
-    ViewFilesBrowser1: TViewFilesBrowser;
     tabCommit: TTabSheet;
+    ViewFilesBrowser1: TViewFilesBrowser;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }

@@ -8,7 +8,7 @@ uses
   VirtualTrees, Vcl.ExtCtrls, Vcl.StdCtrls;
 
 type
-  TFrame1 = class(TFrame)
+  TViewCommit = class(TFrame)
     leftPanel: TPanel;
     ActionList1: TActionList;
     actUnstageSelected: TAction;
@@ -45,7 +45,7 @@ implementation
 
 {$R *.dfm}
 
-procedure TFrame1.actCommitUpdate(Sender: TObject);
+procedure TViewCommit.actCommitUpdate(Sender: TObject);
 begin
   actCommit.Enabled := commitMsg.Text <> '';
 end;

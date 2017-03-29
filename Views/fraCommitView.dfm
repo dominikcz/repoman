@@ -1,4 +1,4 @@
-object Frame1: TFrame1
+object ViewCommit: TViewCommit
   Left = 0
   Top = 0
   Width = 914
@@ -14,7 +14,6 @@ object Frame1: TFrame1
     Caption = 'leftPanel'
     ShowCaption = False
     TabOrder = 0
-    ExplicitLeft = 1
     object Splitter1: TSplitter
       Left = 0
       Top = 238
@@ -47,9 +46,6 @@ object Frame1: TFrame1
       Caption = 'Panel1'
       ShowCaption = False
       TabOrder = 0
-      ExplicitLeft = 1
-      ExplicitTop = 432
-      ExplicitWidth = 447
       object Button5: TButton
         Left = 367
         Top = 9
@@ -84,9 +80,6 @@ object Frame1: TFrame1
       BevelOuter = bvNone
       Caption = 'pnlUnstaged'
       TabOrder = 2
-      ExplicitLeft = 102
-      ExplicitTop = 51
-      ExplicitWidth = 347
       object filterPanel: TPanel
         Left = 0
         Top = 0
@@ -97,9 +90,6 @@ object Frame1: TFrame1
         Caption = 'filterPanel'
         ShowCaption = False
         TabOrder = 0
-        ExplicitLeft = 1
-        ExplicitTop = 1
-        ExplicitWidth = 345
       end
       object unstagedFiles: TVirtualStringTree
         Left = 0
@@ -118,10 +108,6 @@ object Frame1: TFrame1
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        ExplicitLeft = 1
-        ExplicitTop = 42
-        ExplicitWidth = 345
-        ExplicitHeight = 195
         Columns = <
           item
             Position = 0
@@ -140,10 +126,6 @@ object Frame1: TFrame1
       BevelOuter = bvNone
       Caption = 'pnlStaged'
       TabOrder = 3
-      ExplicitLeft = 105
-      ExplicitTop = 320
-      ExplicitWidth = 344
-      ExplicitHeight = 225
       object stagingPanel: TPanel
         Left = 0
         Top = 0
@@ -154,9 +136,6 @@ object Frame1: TFrame1
         Caption = 'filterPanel'
         ShowCaption = False
         TabOrder = 0
-        ExplicitLeft = 1
-        ExplicitTop = 1
-        ExplicitWidth = 342
         DesignSize = (
           449
           40)
@@ -251,10 +230,6 @@ object Frame1: TFrame1
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        ExplicitLeft = 1
-        ExplicitTop = 41
-        ExplicitWidth = 342
-        ExplicitHeight = 183
         Columns = <
           item
             Position = 0
