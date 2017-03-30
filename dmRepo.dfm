@@ -5,7 +5,7 @@ object Repo: TRepo
   Height = 268
   Width = 441
   object alRepoActions: TActionList
-    Left = 137
+    Left = 136
     Top = 88
   end
   object alViewActions: TActionList
@@ -21,22 +21,26 @@ object Repo: TRepo
     object actModifiedOnly: TAction
       AutoCheck = True
       Caption = 'modified'
-      GroupIndex = 1
       Hint = 'toggle modified/all'
       OnExecute = refreshView
     end
     object actIgnore: TAction
       Caption = 'ignored'
-      GroupIndex = 2
       Hint = 'edit ignored list'
     end
     object actShowIgnored: TAction
       AutoCheck = True
       Caption = 'showIgnored'
       Checked = True
-      GroupIndex = 10
       Hint = 'toggle ignored'
       OnExecute = actShowIgnoredExecute
+    end
+    object actRefresh: TAction
+      Caption = 'actRefresh'
+      SecondaryShortCuts.Strings = (
+        'Ctrl+R')
+      ShortCut = 116
+      OnExecute = actRefreshExecute
     end
   end
 end

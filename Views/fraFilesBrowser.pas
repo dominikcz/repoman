@@ -20,6 +20,8 @@ type
     SpeedButton1: TSpeedButton;
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
+    CheckBox1: TCheckBox;
+    Button1: TButton;
     procedure edtWorkingCopyPathChange(Sender: TObject);
   private
     FRootPath: string;

@@ -48,16 +48,15 @@ object ViewFilesBrowser: TViewFilesBrowser
       Height = 21
       Action = Repo.actModifiedOnly
       AllowAllUp = True
-      GroupIndex = 1
     end
     object SpeedButton3: TSpeedButton
       Left = 365
       Top = 11
       Width = 83
       Height = 21
-      Action = Repo.actShowIgnored
+      Hint = 'toggle ignored'
       AllowAllUp = True
-      GroupIndex = 10
+      Caption = 'showIgnored'
     end
     object edtWorkingCopyPath: TEdit
       Left = 10
@@ -66,6 +65,23 @@ object ViewFilesBrowser: TViewFilesBrowser
       Height = 21
       TabOrder = 0
       OnExit = edtWorkingCopyPathChange
+    end
+    object CheckBox1: TCheckBox
+      Left = 536
+      Top = 16
+      Width = 97
+      Height = 17
+      Action = Repo.actShowIgnored
+      State = cbChecked
+      TabOrder = 1
+    end
+    object Button1: TButton
+      Left = 672
+      Top = 10
+      Width = 75
+      Height = 25
+      Action = Repo.actRefresh
+      TabOrder = 2
     end
   end
   object log: TMemo
@@ -94,6 +110,8 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     TabOrder = 2
     TreeOptions.SelectionOptions = [toFullRowSelect]
+    ExplicitLeft = -3
+    ExplicitTop = 38
     Columns = <
       item
         Position = 0
