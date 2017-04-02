@@ -34,6 +34,7 @@ uses
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   repo.refreshView(sender);
+  ViewFilesBrowser1.dirTree.Expanded[ViewFilesBrowser1.dirTree.RootNode] := true;
 end;
 
 end.

@@ -110,8 +110,6 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     TabOrder = 2
     TreeOptions.SelectionOptions = [toFullRowSelect]
-    ExplicitLeft = -3
-    ExplicitTop = 38
     Columns = <
       item
         Position = 0

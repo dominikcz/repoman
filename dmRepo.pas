@@ -35,23 +35,18 @@ type
     FFiles: TFilesList;
     FDirs: TDirsList;
     FIgnoreList: TStringList;
-//    FDirHelper: TVSTHelper<TDirInfo>;
+    FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
     procedure hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort, Visible: boolean);
-    procedure RebuildDirTree;
-    procedure dirTreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
-    procedure dirTreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
-      var InitialStates: TVirtualNodeInitStates);
-    procedure dirTreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure dirTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+    procedure hndDirInitChildren(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure hndDirInitNode(Sender: TBaseVirtualTree; Item: TDirInfo; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure hndDirGetText(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
-    function HasChildren(const Folder: string): Boolean;
 
+    procedure PrepareIgnoreList(const dir: string);
   public
     { Public declarations }
-    procedure ReloadFiles(rootPath: string);
     procedure hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
-    procedure hndOnChangeDir2(Sender: TBaseVirtualTree; Node: PVirtualNode);
   end;
 
 function Repo: TRepo;
@@ -63,11 +58,15 @@ implementation
 {$R *.dfm}
 
 uses
+  System.IOUtils,
   frmMain,
   whizaxe.vclHelper;
 
 var
   vRepo: TRepo;
+
+const
+  cIgnoreListFileName = 'ignorelist.repoman'; // DONT LOCALIZE
 
 function Repo: TRepo;
 begin
@@ -84,6 +83,7 @@ end;
 procedure TRepo.actShowIgnoredExecute(Sender: TObject);
 begin
   FFileListHelper.Filtered := not actShowIgnored.Checked;
+  FDirHelper.RefreshView;
 end;
 
 procedure TRepo.DataModuleCreate(Sender: TObject);
@@ -99,22 +99,98 @@ begin
   FFileListHelper.Model := FFiles;
   FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;
 
-//  FDirHelper := TVSTHelperTree<TDirInfo>.Create;
-//  FDirHelper.Model := FDirs;
-//  FDirHelper.TreeView := MainForm.ViewFilesBrowser1.dirTree;
-//  FDirHelper.OnChange := hndOnChangeDir;
-  MainForm.ViewFilesBrowser1.dirTree.OnInitNode := dirTreeInitNode;
-  MainForm.ViewFilesBrowser1.dirTree.OnInitChildren := dirTreeInitChildren;
-  MainForm.ViewFilesBrowser1.dirTree.OnFreeNode := dirTreeFreeNode;
-  MainForm.ViewFilesBrowser1.dirTree.OnGetText := dirTreeGetText;
-  MainForm.ViewFilesBrowser1.dirTree.OnChange := hndOnChangeDir2;
+  FDirHelper := TVSTHelperTree<TDirInfo>.Create;
+  FDirHelper.OnInitNode := hndDirInitNode;
+  FDirHelper.OnInitChildren := hndDirInitChildren;
+  FDirHelper.OnGetText := hndDirGetText;
+  FDirHelper.OnChange := hndOnChangeDir;
+  FDirHelper.Model := FDirs;
+  FDirHelper.TreeView := MainForm.ViewFilesBrowser1.dirTree;
 
-  FRootPath := 'c:\mccomp\NewPos2014';
+  FRootPath := 'x:\mccomp\NewPos2014';
   MainForm.ViewFilesBrowser1.RootPath := FRootPath;
   MainForm.ViewFilesBrowser1.OnRootChange := hndChangeRootDir;
 
   FIgnoreList := TStringList.Create;
-  fileName := FRootPath + '\ignorelist.repoman';
+  PrepareIgnoreList(ExtractFileDir(paramStr(0)));
+  FFileListHelper.OnFiltered := hndVstFiltered;
+end;
+
+procedure TRepo.DataModuleDestroy(Sender: TObject);
+begin
+  FDirs.Free;
+  FFiles.Free;
+
+  FFileListHelper.Free;
+  FDirHelper.Free;
+
+  FIgnoreList.Free;
+end;
+
+procedure TRepo.hndChangeRootDir(Sender: TObject);
+begin
+  FRootPath := MainForm.ViewFilesBrowser1.RootPath;
+end;
+
+procedure TRepo.hndDirGetText(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType; var CellText: string);
+begin
+  CellText := Item.dir;
+end;
+
+procedure TRepo.hndDirInitChildren(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+var
+  ChildNode: PVirtualNode;
+  child: TDirInfo;
+begin
+  for child in FDirs.GetChildrenIterator(Item) do
+  begin
+    if _FilterModel(child.FullPath) then
+    begin
+      ChildNode := Sender.AddChild(Node, child);
+      Sender.ValidateNode(Node, False);
+    end;
+    ChildCount := Sender.ChildCount[Node];
+    if ChildCount > 0 then
+      Sender.Sort(Node, 0, TVirtualStringTree(Sender).Header.SortDirection, False);
+  end;
+end;
+
+procedure TRepo.hndDirInitNode(Sender: TBaseVirtualTree; Item: TDirInfo; ParentNode, Node: PVirtualNode;
+  var InitialStates: TVirtualNodeInitStates);
+begin
+  if FDirs.HasChildren(Item) then
+    Include(InitialStates, ivsHasChildren);
+end;
+
+function TRepo.hndFilterModel(item: TFileInfo): boolean;
+begin
+  result := _FilterModel(item.fullPath);
+end;
+
+procedure TRepo.hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
+begin
+  FFiles.Reload(item.fullPath, actFlatMode.Checked);
+  FFileListHelper.RefreshView;
+end;
+
+procedure TRepo.hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort,
+  Visible: boolean);
+begin
+  Visible := hndFilterModel(item);
+end;
+
+procedure TRepo.PrepareIgnoreList(const dir: string);
+var
+  fileName: string;
+  i: Integer;
+  s: string;
+begin
+  fileName := TPath.Combine(dir, cIgnoreListFileName);
+  if not FileExists(fileName) then
+    fileName := TPath.Combine(ExtractFilePath(paramStr(0)), cIgnoreListFileName);
+
   if FileExists(fileName) then
   begin
     FIgnoreList.LoadFromFile(fileName);
@@ -134,154 +210,20 @@ begin
         FIgnoreList.Objects[i] := TObject(ord(mtContains));
       FIgnoreList[i] := StringReplace(s, '*', '', [rfReplaceAll]);
     end;
-  end;
-
-  FFileListHelper.OnFiltered := hndVstFiltered;
-  RebuildDirTree;
-end;
-
-procedure TRepo.DataModuleDestroy(Sender: TObject);
-begin
-  FDirs.Free;
-  FFiles.Free;
-
-  FFileListHelper.Free;
-//  FDirHelper.Free;
-
-  FIgnoreList.Free;
-end;
-
-procedure TRepo.dirTreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  Data: PShellObjectData;
-begin
-  Data := Sender.GetNodeData(Node);
-  Finalize(Data^); // Clear string data.
-end;
-
-procedure TRepo.dirTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: string);
-var
-  Data: PShellObjectData;
-begin
-  Data := Sender.GetNodeData(Node);
-  CellText := data.dir;
-end;
-
-procedure TRepo.dirTreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
-var
-  Data,
-  ChildData: PShellObjectData;
-  SR: TSearchRec;
-  ChildNode: PVirtualNode;
-  NewName: String;
-begin
-  Data := Sender.GetNodeData(Node);
-  if FindFirst(IncludeTrailingBackslash(Data.FullPath) + '*', faDirectory, SR) = 0 then
-  begin
-    try
-      repeat
-        if (SR.Name <> '.') and (SR.Name <> '..') then
-        begin
-          NewName := IncludeTrailingBackslash(Data.FullPath) + SR.Name;
-          if (SR.Attr and faDirectory <> 0) and _FilterModel(Data.FullPath) then
-          begin
-            ChildNode := Sender.AddChild(Node);
-            ChildData := Sender.GetNodeData(ChildNode);
-            ChildData.FullPath := NewName;
-            ChildData.dir := SR.Name;
-
-            Sender.ValidateNode(Node, False);
-          end;
-        end;
-      until FindNext(SR) <> 0;
-      ChildCount := Sender.ChildCount[Node];
-
-      // finally sort node
-      if ChildCount > 0 then
-        Sender.Sort(Node, 0, TVirtualStringTree(Sender).Header.SortDirection, False);
-    finally
-      FindClose(SR);
-    end;
-  end;
-
-end;
-
-procedure TRepo.dirTreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
-  var InitialStates: TVirtualNodeInitStates);
-var
-  Data: PShellObjectData;
-begin
-  Data := Sender.GetNodeData(Node);
-  if (ParentNode = nil) then
-  begin
-    Data.fullPath := FRootPath;
-    data.dir := 'root';
-  end;
-  if HasChildren(Data.FullPath) then
-    Include(InitialStates, ivsHasChildren);
-end;
-
-function TRepo.HasChildren(const Folder: string): Boolean;
-var
-  SR: TSearchRec;
-
-begin
-  Result := FindFirst(IncludeTrailingBackslash(Folder) + '*.*', faReadOnly or faHidden or faSysFile or faArchive, SR) = 0;
-  if Result then
-    FindClose(SR);
-end;
-
-procedure TRepo.hndChangeRootDir(Sender: TObject);
-begin
-  FRootPath := MainForm.ViewFilesBrowser1.RootPath;
-end;
-
-function TRepo.hndFilterModel(item: TFileInfo): boolean;
-begin
-  result := _FilterModel(item.fullPath);
-end;
-
-procedure TRepo.hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
-begin
-  FFiles.Reload(item.fullPath, actFlatMode.Checked);
-  FFileListHelper.RefreshView;
-end;
-
-procedure TRepo.hndOnChangeDir2(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  Data: PShellObjectData;
-begin
-  Data := Sender.GetNodeData(Node);
-  FFiles.Reload(data.fullPath, actFlatMode.Checked);
-  FFileListHelper.RefreshView;
-end;
-
-procedure TRepo.hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort,
-  Visible: boolean);
-begin
-  Visible := hndFilterModel(item);
-end;
-
-procedure TRepo.RebuildDirTree;
-begin
-  MainForm.ViewFilesBrowser1.dirTree.NodeDataSize := SizeOf(TShellObjectData);
-  MainForm.ViewFilesBrowser1.dirTree.RootNodeCount := 1;  // sztuczny root
+  end
+  else
+    FIgnoreList.clear;
 end;
 
 procedure TRepo.refreshView(Sender: TObject);
+var
+  child: TDirInfo;
 begin
   FDirs.Reload(FRootPath);
-  RebuildDirTree;
-  //  FDirHelper.RefreshView;
+  FFileListHelper.RefreshView;
 
   FFiles.Reload(FRootPath, actFlatMode.Checked);
   FFileListHelper.RefreshView;
-end;
-
-procedure TRepo.ReloadFiles(rootPath: string);
-begin
-
 end;
 
 function TRepo._FilterModel(path: string): boolean;
@@ -290,7 +232,7 @@ var
   s: string;
 begin
   result := true;
-  if actShowIgnored.Checked then
+  if not actShowIgnored.Checked then
     exit;
   for i := 0 to FIgnoreList.Count - 1 do
   begin

@@ -32,29 +32,37 @@ object MainForm: TMainForm
         Height = 614
         Align = alClient
         TabOrder = 0
-        ExplicitLeft = 13
-        ExplicitTop = 72
+        ExplicitWidth = 976
+        ExplicitHeight = 614
         inherited Splitter1: TSplitter
           Height = 481
+          ExplicitHeight = 481
         end
         inherited Splitter2: TSplitter
           Top = 522
           Width = 976
+          ExplicitTop = 522
+          ExplicitWidth = 976
         end
         inherited Panel1: TPanel
           Width = 976
-          ExplicitTop = 0
+          ExplicitWidth = 976
         end
         inherited log: TMemo
           Top = 525
           Width = 976
+          ExplicitTop = 525
+          ExplicitWidth = 976
         end
         inherited dirTree: TVirtualStringTree
           Height = 481
+          ExplicitHeight = 481
         end
         inherited fileList: TVirtualStringTree
           Width = 773
           Height = 481
+          ExplicitWidth = 773
+          ExplicitHeight = 481
         end
       end
     end
