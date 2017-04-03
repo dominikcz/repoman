@@ -7,7 +7,9 @@ uses
   Models.FileInfo in 'Models\Models.FileInfo.pas',
   dmRepo in 'dmRepo.pas' {Repo: TDataModule},
   fraCommitView in 'Views\fraCommitView.pas' {ViewCommit: TFrame},
-  whizaxe.VSTHelper.Tree in 'whizaxe.VSTHelper.Tree.pas';
+  whizaxe.VSTHelper.Tree in 'whizaxe.VSTHelper.Tree.pas',
+  repoHelper in 'repoHelper.pas',
+  repoHelper.CVS in 'repoHelper.CVS.pas';
 
 {$R *.res}
 

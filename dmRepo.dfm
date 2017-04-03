@@ -31,7 +31,6 @@ object Repo: TRepo
     object actShowIgnored: TAction
       AutoCheck = True
       Caption = 'showIgnored'
-      Checked = True
       Hint = 'toggle ignored'
       OnExecute = actShowIgnoredExecute
     end

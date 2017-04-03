@@ -96,6 +96,7 @@ begin
   FDirs := TDirsList.Create;
 
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
+  FFileListHelper.Filtered := not actShowIgnored.Checked;
   FFileListHelper.Model := FFiles;
   FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;
 
@@ -107,7 +108,12 @@ begin
   FDirHelper.Model := FDirs;
   FDirHelper.TreeView := MainForm.ViewFilesBrowser1.dirTree;
 
+  {$IFDEF XPS}
+  FRootPath := 'c:\mccomp\NewPos2014';
+  {$ELSE}
   FRootPath := 'x:\mccomp\NewPos2014';
+  {$ENDIF}
+
   MainForm.ViewFilesBrowser1.RootPath := FRootPath;
   MainForm.ViewFilesBrowser1.OnRootChange := hndChangeRootDir;
 
@@ -232,7 +238,7 @@ var
   s: string;
 begin
   result := true;
-  if not actShowIgnored.Checked then
+  if actShowIgnored.Checked then
     exit;
   for i := 0 to FIgnoreList.Count - 1 do
   begin

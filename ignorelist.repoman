@@ -7,6 +7,6 @@
 *.cfg
 __history
 *.dcu
-\CVS\
+\CVS
 __recovery
-.#*
+.#
