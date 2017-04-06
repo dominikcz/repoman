@@ -7,6 +7,8 @@ uses
   Vcl.ActnList, Vcl.Graphics,
   VirtualTrees,
   Models.FileInfo,
+  repoHelper,
+  repoHelper.CVS,
   whizaxe.vstHelper,
   whizaxe.vstHelper.Tree;
 
@@ -35,6 +37,7 @@ type
     FFiles: TFilesList;
     FDirs: TDirsList;
     FIgnoreList: TStringList;
+    FRepoHelper: IRepoHelper;
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
     procedure hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort, Visible: boolean);
@@ -114,6 +117,9 @@ begin
   FRootPath := 'x:\mccomp\NewPos2014';
   {$ENDIF}
 
+  FRepoHelper := TRepoHelperCVS.Create;
+  FRepoHelper.Init(FRootPath);
+
   MainForm.ViewFilesBrowser1.RootPath := FRootPath;
   MainForm.ViewFilesBrowser1.OnRootChange := hndChangeRootDir;
 
@@ -178,6 +184,7 @@ end;
 procedure TRepo.hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
 begin
   FFiles.Reload(item.fullPath, actFlatMode.Checked);
+  FRepoHelper.updateFilesState(FFiles);
   FFileListHelper.RefreshView;
 end;
 

@@ -8,6 +8,7 @@ uses
 
 type
   TFileState = (fsNormal, fsNew, fsRemoved, fsModified);
+  TDirState = (dsVersioned, dsUnversioned);
 
   TFileInfo = class
   public
@@ -28,6 +29,7 @@ type
     dir: string;
     fullPath: string;
     shortPath: string;
+    state: TDirState;
     constructor Create(AFullPath, ARoot: string);
     function IsChildOf(testParent: TDirInfo): boolean;
   end;
@@ -176,12 +178,17 @@ procedure TDirsList.Reload(rootPath: string; const includeRoot: boolean = true);
 var
   lList: TStringDynArray;
   s: string;
+  dirInfo: TDirInfo;
 begin
   lList := TDirectory.GetDirectories(rootPath, '*', TSearchOption.soAllDirectories);
   Clear;
   Add(TDirInfo.Create(rootPath, rootPath));
   for s in lList do
-    Add(TDirInfo.Create(s, rootPath));
+  begin
+    dirInfo := TDirInfo.Create(s, rootPath);
+
+    Add(dirInfo);
+  end;
 end;
 
 { TDirsList.TChildrenEnumerator }
