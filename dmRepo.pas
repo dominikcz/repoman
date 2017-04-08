@@ -10,7 +10,7 @@ uses
   repoHelper,
   repoHelper.CVS,
   whizaxe.vstHelper,
-  whizaxe.vstHelper.Tree;
+  whizaxe.vstHelper.Tree, System.ImageList, Vcl.ImgList, Vcl.Controls, PngImageList;
 
 type
   TMatchType = (mtContains, mtEndsWith, mtStartsWith);
@@ -23,6 +23,7 @@ type
     actIgnore: TAction;
     actShowIgnored: TAction;
     actRefresh: TAction;
+    PngImageList1: TPngImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -97,6 +98,7 @@ var
 begin
   FFiles := TFilesList.Create;
   FDirs := TDirsList.Create;
+  FIgnoreList := TStringList.Create;
 
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
   FFileListHelper.Filtered := not actShowIgnored.Checked;
@@ -123,7 +125,6 @@ begin
   MainForm.ViewFilesBrowser1.RootPath := FRootPath;
   MainForm.ViewFilesBrowser1.OnRootChange := hndChangeRootDir;
 
-  FIgnoreList := TStringList.Create;
   PrepareIgnoreList(ExtractFileDir(paramStr(0)));
   FFileListHelper.OnFiltered := hndVstFiltered;
 end;

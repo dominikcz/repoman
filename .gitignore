@@ -7,3 +7,5 @@
 *.cfg
 __history
 *.dcu
+3rdparty/WinCvsSrc2_1_1
+.gitignore
