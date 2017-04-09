@@ -154,17 +154,55 @@ end;
 
 procedure TRepoHelperCVS.updateDirsState(dirs: TDirsList);
 var
-  dir: TDirInfo;
+  dirInfo: TDirInfo;
+  lastRepoIdx, lastFound: Integer;
+  repoItem: TCVSEntry; // TODO: do zmiany
+  dirLen: integer;
+  max: Integer;
 begin
-  for dir in dirs do
+  lastFound := 0;
+  max := FEntries.Count - 1;
+  for dirInfo in dirs do
   begin
-
+    lastRepoIdx := lastFound;
+    dirInfo.state := dsUnversioned;
+    dirLen := dirInfo.fullPath.Length;
+    if dirInfo.fullPath.EndsWith('\CVS') then
+      dirInfo.state := dsVersioned
+    else
+      repeat
+        repoItem := FEntries.Items[lastRepoIdx];
+        if repoItem.name.StartsWith(dirInfo.fullPath) then
+        begin
+          dirInfo.state := dsVersioned;
+          lastFound := lastRepoIdx;
+          break;
+        end;
+        inc(lastRepoIdx); // TODO: zoptymalizowaæ przez analizê œcie¿ki?
+      until (lastRepoIdx >= max);
   end;
 end;
 
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);
+var
+  fileInfo: TFileInfo;
+  lastRepoIdx: Integer;
+  repoItem: TCVSEntry; // TODO: do zmiany
 begin
-
+  lastRepoIdx := 0;
+  for fileInfo in files do
+  begin
+    repoItem := FEntries.Items[lastRepoIdx];
+    while (lastRepoIdx < FEntries.Count - 2) and (FEntries.Items[lastRepoIdx].name < fileInfo.fullPath) do
+    begin
+      inc(lastRepoIdx);
+      repoItem := FEntries.Items[lastRepoIdx];
+    end;
+    if fileInfo.fullPath = repoItem.name then
+      fileInfo.state := repoItem.state
+    else
+      fileInfo.state := fsUnversioned;
+  end;
 end;
 
 end.

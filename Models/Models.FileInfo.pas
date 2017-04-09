@@ -7,8 +7,8 @@ uses
   whizaxe.collections;
 
 type
-  TFileState = (fsNormal, fsUnversioned, fsAdded, fsRemoved, fsModified, fsConflict);
-  TDirState = (dsVersioned, dsUnversioned);
+  TFileState = (fsUnversioned, fsNormal, fsAdded, fsRemoved, fsModified, fsConflict);
+  TDirState = (dsUnversioned, dsVersioned);
 
   TFileInfo = class
   public
@@ -72,7 +72,7 @@ type
   end;
 
 const
-  FileStateStr: array[TFileState] of string = ('normal', 'unversioned', 'added', 'removed', 'modified', 'conflict');
+  FileStateStr: array[TFileState] of string = ('unversioned', 'normal', 'added', 'removed', 'modified', 'conflict');
 
 implementation
 

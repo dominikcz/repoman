@@ -99,6 +99,11 @@ begin
   FTreeView.TreeOptions.PaintOptions := FTreeView.TreeOptions.PaintOptions + [toHideFocusRect] - [toShowRoot, toShowTreeLines, toHideSelection, toUseBlendedSelection];
   FTreeView.TreeOptions.MiscOptions := FTreeView.TreeOptions.MiscOptions - [toGridExtensions] - [toVariableNodeHeight, toReadOnly];
 
+  if Assigned(OnGetImageIndex) then
+    FTreeView.OnGetImageIndex := vstGetImageIndex
+  else
+    FTreeView.OnGetImageIndex := nil;
+
   FTreeView.OnInitNode := vstTreeInitNode;
   FTreeView.OnInitChildren := vstTreeInitChildren;
   FTreeView.OnGetText := vstTreeGetText;

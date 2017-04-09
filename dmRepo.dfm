@@ -42,7 +42,7 @@ object Repo: TRepo
       OnExecute = actRefreshExecute
     end
   end
-  object PngImageList1: TPngImageList
+  object repoIcons: TPngImageList
     PngImages = <
       item
         Background = clWindow

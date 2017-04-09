@@ -23,7 +23,7 @@ type
     actIgnore: TAction;
     actShowIgnored: TAction;
     actRefresh: TAction;
-    PngImageList1: TPngImageList;
+    repoIcons: TPngImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -41,6 +41,8 @@ type
     FRepoHelper: IRepoHelper;
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
+    procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+    procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort, Visible: boolean);
     procedure hndDirInitChildren(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure hndDirInitNode(Sender: TBaseVirtualTree; Item: TDirInfo; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
@@ -101,6 +103,7 @@ begin
   FIgnoreList := TStringList.Create;
 
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
+  FFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
   FFileListHelper.Filtered := not actShowIgnored.Checked;
   FFileListHelper.Model := FFiles;
   FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;
@@ -110,6 +113,7 @@ begin
   FDirHelper.OnInitChildren := hndDirInitChildren;
   FDirHelper.OnGetText := hndDirGetText;
   FDirHelper.OnChange := hndOnChangeDir;
+  FDirHelper.OnGetImageIndex := hndDirsGetImageIndex;
   FDirHelper.Model := FDirs;
   FDirHelper.TreeView := MainForm.ViewFilesBrowser1.dirTree;
 
@@ -177,6 +181,35 @@ begin
     Include(InitialStates, ivsHasChildren);
 end;
 
+procedure TRepo.hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind;
+  Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+begin
+  if (column > 0) or not (Kind in [ikNormal, ikSelected]) then
+    exit;
+
+  if item.state = dsVersioned then
+    ImageIndex := 8
+  else
+    ImageIndex := 9;
+end;
+
+procedure TRepo.hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind;
+  Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+begin
+  if (column > 0) or not (Kind in [ikNormal, ikSelected]) then
+    exit;
+
+  case item.state of
+    fsNormal: ImageIndex := 0;
+    fsAdded: ImageIndex := 2;
+    fsRemoved: ImageIndex := 6;
+    fsModified: ImageIndex := 5;
+    fsConflict: ImageIndex := 3;
+    else
+      ImageIndex := 1;
+  end;
+end;
+
 function TRepo.hndFilterModel(item: TFileInfo): boolean;
 begin
   result := _FilterModel(item.fullPath);
@@ -234,9 +267,11 @@ var
   child: TDirInfo;
 begin
   FDirs.Reload(FRootPath);
-  FFileListHelper.RefreshView;
+  FRepoHelper.updateDirsState(FDirs);
+//  FDirHelper.RefreshView;
 
   FFiles.Reload(FRootPath, actFlatMode.Checked);
+  FRepoHelper.updateFilesState(FFiles);
   FFileListHelper.RefreshView;
 end;
 

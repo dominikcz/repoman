@@ -72,7 +72,6 @@ object ViewFilesBrowser: TViewFilesBrowser
       Width = 97
       Height = 17
       Action = Repo.actShowIgnored
-      State = cbChecked
       TabOrder = 1
     end
     object Button1: TButton
@@ -100,6 +99,9 @@ object ViewFilesBrowser: TViewFilesBrowser
     Width = 200
     Height = 321
     Align = alLeft
+    AnimationDuration = 100
+    AutoExpandDelay = 0
+    AutoScrollDelay = 0
     Header.AutoSizeIndex = 0
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
@@ -108,7 +110,11 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Font.Style = []
     Header.Height = 18
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+    Images = Repo.repoIcons
     TabOrder = 2
+    TreeOptions.AnimationOptions = [toAnimatedToggle]
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.SelectionOptions = [toFullRowSelect]
     Columns = <
       item
@@ -133,8 +139,12 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+    Images = Repo.repoIcons
+    Indent = 20
     TabOrder = 3
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
+    TreeOptions.SelectionOptions = [toFullRowSelect]
     Columns = <
       item
         Position = 0
