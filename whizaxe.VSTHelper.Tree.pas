@@ -13,14 +13,6 @@ type
     obj: TObject;
   end;
 
-//  PShellObjectData = ^TShellObjectData;
-//  TShellObjectData = record
-//    dir: string;
-//    fullPath: string;
-//    shortPath: string;
-//    isDir: boolean;
-//  end;
-
   TVSTHelperTree<T: class> = class(TVSTHelperBase<T>)
   public
     type

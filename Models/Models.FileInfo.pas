@@ -135,7 +135,7 @@ function TDirInfo.IsChildOf(testParent: TDirInfo): boolean;
 var
   tmp: string;
 begin
-  if not self.fullPath.StartsWith(testParent.fullPath) then
+  if not self.fullPath.StartsWith(testParent.fullPath+'\') then
     exit(false);
   tmp := self.fullPath.Substring(testParent.fullPath.Length + 1);
   result := tmp.IndexOf('\') = -1;
