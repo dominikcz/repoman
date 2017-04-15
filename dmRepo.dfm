@@ -5,14 +5,55 @@ object Repo: TRepo
   Height = 268
   Width = 441
   object alRepoActions: TActionList
+    Images = repoActionsIcons
     Left = 136
     Top = 88
+    object actDiff: TAction
+      Category = 'repo'
+      Caption = 'diff'
+      ImageIndex = 2
+      ShortCut = 16452
+      OnUpdate = FileActionUpdate
+    end
+    object actGraph: TAction
+      Category = 'repo'
+      Caption = 'graph'
+      ImageIndex = 5
+      ShortCut = 16455
+      OnUpdate = FileActionUpdate
+    end
+    object actLog: TAction
+      Category = 'repo'
+      Caption = 'log'
+      ImageIndex = 3
+      ShortCut = 16460
+      OnUpdate = FileActionUpdate
+    end
+    object actAnnotate: TAction
+      Category = 'repo'
+      Caption = 'annotate/blame'
+      ImageIndex = 4
+      OnUpdate = FileActionUpdate
+    end
+    object actAdd: TAction
+      Category = 'repo'
+      Caption = 'add'
+      ImageIndex = 0
+      OnUpdate = actAddUpdate
+    end
+    object actRemove: TAction
+      Category = 'repo'
+      Caption = 'remove'
+      ImageIndex = 1
+      OnUpdate = FileActionUpdate
+    end
   end
   object alViewActions: TActionList
     Images = toolbarIcons
     Left = 225
     Top = 80
     object actFlatMode: TAction
+      Category = 'view'
       AutoCheck = True
       Caption = 'flat mode'
       Checked = True
@@ -21,6 +62,7 @@ object Repo: TRepo
       OnExecute = refreshView
     end
     object actModifiedOnly: TAction
+      Category = 'view'
       AutoCheck = True
       Caption = 'modified'
       Hint = 'toggle modified'
@@ -28,6 +70,7 @@ object Repo: TRepo
       OnExecute = refreshView
     end
     object actShowUnversioned: TAction
+      Category = 'view'
       AutoCheck = True
       Caption = 'unversioned'
       Hint = 'toggle unversioned'
@@ -35,6 +78,7 @@ object Repo: TRepo
       OnExecute = refreshView
     end
     object actShowIgnored: TAction
+      Category = 'view'
       AutoCheck = True
       Caption = 'ignored'
       Hint = 'toggle ignored'
@@ -42,7 +86,8 @@ object Repo: TRepo
       OnExecute = refreshView
     end
     object actRefresh: TAction
-      Caption = 'actRefresh'
+      Category = 'view'
+      Caption = 'refresh'
       ImageIndex = 5
       SecondaryShortCuts.Strings = (
         'Ctrl+R')
@@ -259,8 +304,8 @@ object Repo: TRepo
           2D30342D30385431363A33343A33372B30323A3030B84442A80000000049454E
           44AE426082}
       end>
-    Left = 304
-    Top = 144
+    Left = 328
+    Top = 152
     Bitmap = {}
   end
   object ActionManager1: TActionManager
@@ -276,23 +321,61 @@ object Repo: TRepo
           item
             Action = actModifiedOnly
             Caption = '&modified'
-            ImageIndex = 4
-          end
-          item
-            Action = actShowUnversioned
-            Caption = '&unversioned'
             ImageIndex = 2
           end
           item
             Action = actShowIgnored
             Caption = '&ignored'
+            ImageIndex = 4
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
             ImageIndex = 3
           end
           item
             Action = actRefresh
-            Caption = '&actRefresh'
+            Caption = '&refresh'
             ImageIndex = 5
             ShortCut = 116
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actDiff
+            Caption = '&diff'
+            ImageIndex = 2
+            ShortCut = 16452
+          end
+          item
+            Action = actGraph
+            Caption = '&graph'
+            ImageIndex = 5
+            ShortCut = 16455
+          end
+          item
+            Action = actLog
+            Caption = '&log'
+            ImageIndex = 3
+            ShortCut = 16460
+          end
+          item
+            Action = actAnnotate
+            Caption = '&annotate/blame'
+            ImageIndex = 4
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actAdd
+            ImageIndex = 0
+          end
+          item
+            Action = actRemove
+            Caption = 'r&emove'
+            ImageIndex = 1
           end>
         ActionBar = MainForm.ActionToolBar1
       end>
@@ -300,6 +383,10 @@ object Repo: TRepo
       item
         ActionList = alViewActions
         Caption = 'alViewActions'
+      end
+      item
+        ActionList = alRepoActions
+        Caption = 'alRepoActions'
       end>
     Images = toolbarIcons
     Left = 328
@@ -412,6 +499,111 @@ object Repo: TRepo
       end>
     Left = 232
     Top = 208
+    Bitmap = {}
+  end
+  object repoActionsIcons: TPngImageList
+    PngImages = <
+      item
+        Background = clFuchsia
+        Name = 'add'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          5200000015504C5445800000808080FFFFFFC0C0C0FF00000000008800005946
+          6C550000000174524E530040E6D86600000001624B4744066166B87D00000009
+          7048597300000B1300000B1301009A9C180000000774494D4507E1040F160A06
+          B708466C0000001063614E76000000F0000000100000000000000000E5683C4E
+          000000454944415478DA636410640082F70C8C0C42020C0C8C6F3F80184AF718
+          FFDD8730980D7E0319460C0CF7187591194029063406D01C6219C20A205B6519
+          21B633D833324001001FF10FD1EEA04F490000002574455874646174653A6372
+          6561746500323031372D30342D31355432323A31303A30362B30323A30308252
+          29AF0000002574455874646174653A6D6F6469667900323031372D30342D3135
+          5432323A31303A30362B30323A3030F30F91130000000049454E44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'remove'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          5200000009504C54458000000000008800000A10A3B70000000174524E530040
+          E6D86600000001624B474402660B7C64000000097048597300000B1300000B13
+          01009A9C180000000774494D4507E1040F160A06B708466C0000001063614E76
+          000000F0000000100000003000000000444984C8000000474944415478DA558D
+          D11100200842618274FF217503A3B2EEE2470E9F42B408AFD4341904E041D02A
+          3992DA5A7888510E61CB28C2973CC6FB6A1396FD90752BC4B070BA5E7B6B02FA
+          BD1A31F1C4AAEE0000002574455874646174653A63726561746500323031372D
+          30342D31355432323A31303A30362B30323A3030825229AF0000002574455874
+          646174653A6D6F6469667900323031372D30342D31355432323A31303A30362B
+          30323A3030F30F91130000000049454E44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'diff'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          5200000015504C5445800000FF00008080800000FFC0C0C000FF008800001629
+          F0BC0000000174524E530040E6D86600000001624B4744066166B87D00000009
+          7048597300000B1300000B1301009A9C180000000774494D4507E1040F160A06
+          B708466C0000001063614E76000000F0000000100000009000000000346E1B5E
+          000000634944415478DA63640001810F0C8C6086E07B204310C4FAFF01CA607C
+          C7C8C0A4C0C0F09EFF01500DF35F06A17720C5C667C1920CCC0620FA2C8CF116
+          24F51EC8F80752ACA8C0B3016CB28A82E06A202314A4E4F70628E3EF3A88C9C6
+          A71F406C0702002268165166CD60E00000002574455874646174653A63726561
+          746500323031372D30342D31355432323A31303A30362B30323A3030825229AF
+          0000002574455874646174653A6D6F6469667900323031372D30342D31355432
+          323A31303A30362B30323A3030F30F91130000000049454E44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'log'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          5200000012504C5445800000808080FFFFFFC0C0C00000008800000FE1617A00
+          00000174524E530040E6D86600000001624B474405F86FE9C700000009704859
+          7300000B1300000B1301009A9C180000000774494D4507E1040F160A06B70846
+          6C0000001063614E76000000F000000010000000A000000000954FA3D8000000
+          464944415478DA636410640082F70C8C0C42020C0C8C6F3F001946F71818FFDD
+          87883029FC01319418EE31CA424418C00CA01A06541152D4082B806CE56584D8
+          CEA0CFC80005006E0E0F117E76AE5C0000002574455874646174653A63726561
+          746500323031372D30342D31355432323A31303A30362B30323A3030825229AF
+          0000002574455874646174653A6D6F6469667900323031372D30342D31355432
+          323A31303A30362B30323A3030F30F91130000000049454E44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'annotate'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          520000000C504C5445800000000000FFFFFF8800004AAD78FF0000000174524E
+          530040E6D86600000001624B474403110C4CF2000000097048597300000B1300
+          000B1301009A9C180000000774494D4507E1040F160A06B708466C0000001063
+          614E76000000F000000010000000C0000000000C7DD495000000544944415478
+          DA55CDC115C0200803D064824636E8FE43B981D2054A41BD3470F8873C204E98
+          ABB9611AFE036FCC9C4270C19440145C932FAB42619012C3D56988969502AAE2
+          B4EB11303C3B408B5E2F12EBE0C90746CC1F63EEF54A71000000257445587464
+          6174653A63726561746500323031372D30342D31355432323A31303A30362B30
+          323A3030825229AF0000002574455874646174653A6D6F646966790032303137
+          2D30342D31355432323A31303A30362B30323A3030F30F91130000000049454E
+          44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'graph'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
+          5200000015504C544580000000000000008000FFFF808080FF00FF880000133B
+          74CC0000000174524E530040E6D86600000001624B4744066166B87D00000009
+          7048597300000B1300000B1301009A9C180000000774494D4507E1040F160A06
+          B708466C0000001063614E76000000F000000010000000D0000000006C9D4317
+          000000504944415478DA636480024638439081E1FF0706810F8C42020CEF3E30
+          1A9C87301C2FFD0531DE0395FC078B7CFCEF0863407581196033FE03B5434C0D
+          580F61385CF90D610800B5436C72FCCF88613B0052D01DD1343914DC00000025
+          74455874646174653A63726561746500323031372D30342D31355432323A3130
+          3A30362B30323A3030825229AF0000002574455874646174653A6D6F64696679
+          00323031372D30342D31355432323A31303A30362B30323A3030F30F91130000
+          000049454E44AE426082}
+      end>
+    Left = 104
+    Top = 184
     Bitmap = {}
   end
 end

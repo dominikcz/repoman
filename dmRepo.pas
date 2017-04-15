@@ -31,12 +31,21 @@ type
     actShowUnversioned: TAction;
     ActionManager1: TActionManager;
     toolbarIcons: TPngImageList;
+    actDiff: TAction;
+    actGraph: TAction;
+    repoActionsIcons: TPngImageList;
+    actLog: TAction;
+    actAnnotate: TAction;
+    actAdd: TAction;
+    actRemove: TAction;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
     function  _FilterModelByPath(path: string): boolean;
     procedure refreshView(Sender: TObject);
     procedure actRefreshExecute(Sender: TObject);
+    procedure FileActionUpdate(Sender: TObject);
+    procedure actAddUpdate(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -47,6 +56,7 @@ type
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
     procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+    procedure hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
     procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort, Visible: boolean);
     procedure hndDirInitChildren(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; var ChildCount: Cardinal);
@@ -58,6 +68,7 @@ type
     procedure PrepareIgnoreList(const dir: string);
 
     procedure RefreshCurrentListing;
+    function isVisible(item: TFileInfo): boolean;
   public
     { Public declarations }
   end;
@@ -88,6 +99,14 @@ begin
   Result := vRepo;
 end;
 
+procedure TRepo.actAddUpdate(Sender: TObject);
+var
+  item: TFileInfo;
+begin
+  item := FFileListHelper.SelectedItem;
+  TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
+end;
+
 procedure TRepo.actRefreshExecute(Sender: TObject);
 begin
   FCurrRootPath := FRootPath;
@@ -108,6 +127,7 @@ begin
 
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
   FFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
+  FFileListHelper.OnCompareNodes := hndFilesCompareNodes;
   FFileListHelper.Filtered := not actShowIgnored.Checked;
   FFileListHelper.Model := FFiles;
   FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;
@@ -148,6 +168,14 @@ begin
   FDirHelper.Free;
 
   FIgnoreList.Free;
+end;
+
+procedure TRepo.FileActionUpdate(Sender: TObject);
+var
+  item: TFileInfo;
+begin
+  item := FFileListHelper.SelectedItem;
+  TAction(Sender).Enabled := (item <> nil) and (item.state <> fsUnversioned);
 end;
 
 procedure TRepo.hndChangeRootDir(Sender: TObject);
@@ -199,6 +227,18 @@ begin
     ImageIndex := 9;
 end;
 
+procedure TRepo.hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
+begin
+  case Column of
+    0: Result := AnsiCompareStr(item1.fileName, item2.fileName);
+    1: Result := AnsiCompareStr(item1.ext, item2.ext);
+    2: Result := AnsiCompareStr(item1.fullPath, item2.fullPath);
+    3: Result := Ord(item1.state) - Ord(item2.state);
+    4: Result := AnsiCompareStr(item1.revision, item2.revision);
+    5: Result := AnsiCompareStr(item1.branch, item2.branch);
+  end;
+end;
+
 procedure TRepo.hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind;
   Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
 begin
@@ -224,11 +264,16 @@ end;
 
 procedure TRepo.hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort,
   Visible: boolean);
+begin
+  Visible := isVisible(item);
+end;
+
+function TRepo.isVisible(item: TFileInfo): boolean;
 var
   allowedStates: set of TFileState;
 begin
   // ignored...
-  Visible := _FilterModelByPath(item.fullPath);
+  Result := _FilterModelByPath(item.fullPath);
   allowedStates := [fsNormal, fsAdded, fsRemoved, fsModified, fsConflict];
   // unversioned...
   if actShowUnversioned.Checked then
@@ -236,7 +281,7 @@ begin
   // modified...
   if actModifiedOnly.Checked and (not actShowIgnored.Checked) then
     Exclude(allowedStates, fsNormal);
-  Visible := Visible and (item.state in allowedStates);
+  Result := Result and (item.state in allowedStates);
 end;
 
 procedure TRepo.PrepareIgnoreList(const dir: string);

@@ -1,7 +1,7 @@
 object ViewFilesBrowser: TViewFilesBrowser
   Left = 0
   Top = 0
-  Width = 963
+  Width = 912
   Height = 454
   TabOrder = 0
   object Splitter1: TSplitter
@@ -15,7 +15,7 @@ object ViewFilesBrowser: TViewFilesBrowser
   object Splitter2: TSplitter
     Left = 0
     Top = 362
-    Width = 963
+    Width = 912
     Height = 3
     Cursor = crVSplit
     Align = alBottom
@@ -26,13 +26,14 @@ object ViewFilesBrowser: TViewFilesBrowser
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 963
+    Width = 912
     Height = 41
     Align = alTop
     BevelOuter = bvNone
     Caption = 'pnlTop'
     ShowCaption = False
     TabOrder = 0
+    ExplicitWidth = 963
     object edtWorkingCopyPath: TEdit
       Left = 8
       Top = 11
@@ -45,12 +46,13 @@ object ViewFilesBrowser: TViewFilesBrowser
   object log: TMemo
     Left = 0
     Top = 365
-    Width = 963
+    Width = 912
     Height = 89
     Align = alBottom
     Lines.Strings = (
       'log')
     TabOrder = 1
+    ExplicitWidth = 963
   end
   object dirTree: TVirtualStringTree
     Left = 0
@@ -86,7 +88,7 @@ object ViewFilesBrowser: TViewFilesBrowser
   object fileList: TVirtualStringTree
     Left = 203
     Top = 41
-    Width = 760
+    Width = 709
     Height = 321
     Align = alClient
     BevelInner = bvNone
@@ -104,10 +106,11 @@ object ViewFilesBrowser: TViewFilesBrowser
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.SelectionOptions = [toFullRowSelect]
+    ExplicitWidth = 888
     Columns = <
       item
         Position = 0
-        Width = 200
+        Width = 10
         WideText = 'file'
         WideHint = 'fileName'
       end
@@ -118,23 +121,25 @@ object ViewFilesBrowser: TViewFilesBrowser
       end
       item
         Position = 2
-        Width = 300
+        Width = 450
         WideText = 'path'
         WideHint = 'shortPath'
       end
       item
         Position = 3
+        Width = 80
         WideText = 'state'
         WideHint = 'stateAsStr'
       end
       item
         Position = 4
+        Width = 74
         WideText = 'revision'
         WideHint = 'revision'
       end
       item
         Position = 5
-        Width = 150
+        Width = 120
         WideText = 'branch'
         WideHint = 'branch'
       end>
