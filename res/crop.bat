@@ -1,1 +1,1 @@
-@"c:\Program Files\ImageMagick"\convert -crop 16x16 %1 %1_%d.bmp
+@"c:\Program Files\ImageMagick"\convert -crop 16x16 %1 %1_%d.png

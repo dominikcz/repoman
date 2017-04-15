@@ -48,6 +48,14 @@ object MainForm: TMainForm
         inherited Panel1: TPanel
           Width = 976
           ExplicitWidth = 976
+          inherited edtWorkingCopyPath: TEdit
+            Left = 5
+            Top = 8
+            Height = 23
+            ExplicitLeft = 5
+            ExplicitTop = 8
+            ExplicitHeight = 23
+          end
         end
         inherited log: TMemo
           Top = 499
@@ -62,6 +70,8 @@ object MainForm: TMainForm
         inherited fileList: TVirtualStringTree
           Width = 773
           Height = 455
+          ExplicitLeft = 206
+          ExplicitTop = 38
           ExplicitWidth = 773
           ExplicitHeight = 455
         end
@@ -83,10 +93,12 @@ object MainForm: TMainForm
         Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = []
+        ParentBackground = True
         ParentFont = False
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
+        ExplicitTop = -6
       end
     end
     object tabCommit: TTabSheet

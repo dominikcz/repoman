@@ -28,9 +28,9 @@ type
     actShowIgnored: TAction;
     actRefresh: TAction;
     repoIcons: TPngImageList;
-    toolbarIcons: TImageList;
     actShowUnversioned: TAction;
     ActionManager1: TActionManager;
+    toolbarIcons: TPngImageList;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
