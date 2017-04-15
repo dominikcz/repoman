@@ -6,8 +6,8 @@ object ViewFilesBrowser: TViewFilesBrowser
   TabOrder = 0
   object Splitter1: TSplitter
     Left = 200
-    Top = 41
-    Height = 321
+    Top = 57
+    Height = 305
     ExplicitLeft = 208
     ExplicitTop = 232
     ExplicitHeight = 100
@@ -27,60 +27,59 @@ object ViewFilesBrowser: TViewFilesBrowser
     Left = 0
     Top = 0
     Width = 963
-    Height = 41
+    Height = 57
     Align = alTop
     BevelOuter = bvNone
     Caption = 'pnlTop'
     ShowCaption = False
     TabOrder = 0
-    object SpeedButton1: TSpeedButton
-      Left = 235
-      Top = 11
-      Width = 59
+    object btnFlatMode: TSpeedButton
+      Left = 234
+      Top = 30
+      Width = 80
       Height = 21
       Action = Repo.actFlatMode
       AllowAllUp = True
     end
-    object SpeedButton2: TSpeedButton
-      Left = 300
-      Top = 11
-      Width = 59
+    object btnModifiedOnly: TSpeedButton
+      Left = 321
+      Top = 30
+      Width = 73
       Height = 21
       Action = Repo.actModifiedOnly
       AllowAllUp = True
     end
-    object SpeedButton3: TSpeedButton
-      Left = 365
-      Top = 11
-      Width = 83
+    object btnShowUnversioned: TSpeedButton
+      Left = 400
+      Top = 30
+      Width = 89
       Height = 21
-      Hint = 'toggle ignored'
+      Action = Repo.actShowUnversioned
       AllowAllUp = True
-      Caption = 'showIgnored'
+    end
+    object btnShowIgnored: TSpeedButton
+      Left = 494
+      Top = 30
+      Width = 81
+      Height = 21
+      Action = Repo.actShowIgnored
+      AllowAllUp = True
     end
     object edtWorkingCopyPath: TEdit
       Left = 10
-      Top = 11
+      Top = 30
       Width = 185
       Height = 21
       TabOrder = 0
       OnExit = edtWorkingCopyPathChange
     end
-    object CheckBox1: TCheckBox
-      Left = 536
-      Top = 16
-      Width = 97
-      Height = 17
-      Action = Repo.actShowIgnored
-      TabOrder = 1
-    end
     object Button1: TButton
       Left = 672
-      Top = 10
+      Top = 29
       Width = 75
       Height = 25
       Action = Repo.actRefresh
-      TabOrder = 2
+      TabOrder = 1
     end
   end
   object log: TMemo
@@ -95,9 +94,9 @@ object ViewFilesBrowser: TViewFilesBrowser
   end
   object dirTree: TVirtualStringTree
     Left = 0
-    Top = 41
+    Top = 57
     Width = 200
-    Height = 321
+    Height = 305
     Align = alLeft
     AnimationDuration = 100
     AutoExpandDelay = 0
@@ -126,9 +125,9 @@ object ViewFilesBrowser: TViewFilesBrowser
   end
   object fileList: TVirtualStringTree
     Left = 203
-    Top = 41
+    Top = 57
     Width = 760
-    Height = 321
+    Height = 305
     Align = alClient
     BevelInner = bvNone
     BevelOuter = bvNone
@@ -170,6 +169,11 @@ object ViewFilesBrowser: TViewFilesBrowser
       end
       item
         Position = 4
+        WideText = 'revision'
+        WideHint = 'revision'
+      end
+      item
+        Position = 5
         Width = 150
         WideText = 'branch'
         WideHint = 'branch'

@@ -32,10 +32,11 @@ object MainForm: TMainForm
         Height = 614
         Align = alClient
         TabOrder = 0
+        ExplicitTop = 29
         ExplicitWidth = 976
-        ExplicitHeight = 614
+        ExplicitHeight = 585
         inherited Splitter1: TSplitter
-          Height = 481
+          Height = 465
           ExplicitHeight = 481
         end
         inherited Splitter2: TSplitter
@@ -51,36 +52,28 @@ object MainForm: TMainForm
         inherited log: TMemo
           Top = 525
           Width = 976
-          ExplicitTop = 525
+          ExplicitTop = 496
           ExplicitWidth = 976
         end
         inherited dirTree: TVirtualStringTree
-          Height = 481
-          ExplicitHeight = 481
+          Height = 465
+          ExplicitHeight = 436
         end
         inherited fileList: TVirtualStringTree
           Width = 773
-          Height = 481
+          Height = 465
           ExplicitWidth = 773
-          ExplicitHeight = 481
+          ExplicitHeight = 436
         end
       end
     end
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar

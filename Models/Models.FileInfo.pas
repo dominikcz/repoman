@@ -11,17 +11,20 @@ type
   TDirState = (dsUnversioned, dsVersioned);
 
   TFileInfo = class
+  private
+    function getStateAsStr: string;
   public
     fileName: string;
     path: string;
-    branch: string;
     state: TFileState;
     fullPath: string;
     shortPath: string;
     ext: string;
     dt: TDateTime;
+    revision: string;
+    branch: string;
     constructor Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
-    function stateAsStr: string;
+    property stateAsStr: string read getStateAsStr;
   end;
 
   TDirInfo = class
@@ -37,6 +40,7 @@ type
   TFilesList = class(TObjectList<TFileInfo>)
   public
     procedure Reload(rootPath: string; flatMode: boolean);
+    function tryToFind(path: string; out item: TFileInfo): boolean;
   end;
 
   TDirsList = class(TObjectList<TDirInfo>)
@@ -80,7 +84,8 @@ uses
   System.Types,
   System.IOUtils,
   System.SysUtils,
-  classes;
+  Generics.Defaults,
+  Classes;
 
 { TFileInfo }
 
@@ -97,7 +102,7 @@ begin
   state := AState;
 end;
 
-function TFileInfo.stateAsStr: string;
+function TFileInfo.getStateAsStr: string;
 begin
   result := FileStateStr[self.state];
 end;
@@ -109,6 +114,8 @@ var
   LSearchOption: TSearchOption;
   lList: TStringDynArray;
   s: string;
+  sl: TStringList;
+  item: TFileInfo;
 begin
   if flatMode then
     LSearchOption := TSearchOption.soAllDirectories
@@ -116,9 +123,30 @@ begin
     LSearchOption := TSearchOption.soTopDirectoryOnly;
 
   lList := TDirectory.GetFiles(rootPath, '*', LSearchOption);
+  TArray.Sort<string>(lList, caseInsensitiveAnsiComparer);
   Clear;
+  sl := TStringList.Create;
   for s in lList do
-     Add(TFileInfo.Create(s, rootPath));
+  begin
+    item := TFileInfo.Create(s, rootPath);
+    Add(item);
+    sl.add(item.fullPath);
+  end;
+  sl.SaveToFile(ExtractFilePath(paramStr(0))+'filelist.txt');
+  sl.Free;
+end;
+
+function TFilesList.tryToFind(path: string; out item: TFileInfo): boolean;
+var
+  lItem: TFileInfo;
+begin
+  result := false;
+  for lItem in self do
+    if item.fullPath = path then
+    begin
+      item := lItem;
+      exit(true);
+    end;
 end;
 
 { TDirInfo }
@@ -208,7 +236,6 @@ end;
 function TDirsList.TChildrenEnumerator.MoveNext: Boolean;
 var
   nextItem: TDirInfo;
-  tmp: string;
 begin
   Result := False;
   while FIndex < FList.Count - 1 do

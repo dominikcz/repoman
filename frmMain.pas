@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, fraFilesBrowser;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, fraFilesBrowser, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls;
 
 type
   TMainForm = class(TForm)
@@ -33,8 +33,16 @@ uses
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  repo.refreshView(sender);
-  ViewFilesBrowser1.dirTree.Expanded[ViewFilesBrowser1.dirTree.RootNode] := true;
+  ViewFilesBrowser1.btnFlatMode.GroupIndex := 1;
+  ViewFilesBrowser1.btnModifiedOnly.GroupIndex := 2;
+  ViewFilesBrowser1.btnShowUnversioned.GroupIndex := 3;
+  ViewFilesBrowser1.btnShowIgnored.GroupIndex := 4;
+
+  //DC: wioska, ale co zrobiæ...
+  ViewFilesBrowser1.btnFlatMode.Down := true;
+  repo.actFlatMode.Checked := true;
+
+  repo.actRefreshExecute(sender);
 end;
 
 end.

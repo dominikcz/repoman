@@ -17,11 +17,11 @@ type
     edtWorkingCopyPath: TEdit;
     dirTree: TVirtualStringTree;
     fileList: TVirtualStringTree;
-    SpeedButton1: TSpeedButton;
-    SpeedButton2: TSpeedButton;
-    SpeedButton3: TSpeedButton;
-    CheckBox1: TCheckBox;
     Button1: TButton;
+    btnFlatMode: TSpeedButton;
+    btnModifiedOnly: TSpeedButton;
+    btnShowUnversioned: TSpeedButton;
+    btnShowIgnored: TSpeedButton;
     procedure edtWorkingCopyPathChange(Sender: TObject);
   private
     FRootPath: string;

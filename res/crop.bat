@@ -1,1 +1,1 @@
-@"c:\Program Files\ImageMagick-6.9.2-Q16"\convert -crop 16x16 smallico.png %d.png
+@"c:\Program Files\ImageMagick"\convert -crop 16x16 %1 %1_%d.bmp
