@@ -14,7 +14,7 @@ uses
   Vcl.ImgList,
   Vcl.Controls,
   PngImageList,
-  VirtualTrees
+  VirtualTrees, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan
   ;
 
 type
@@ -30,6 +30,7 @@ type
     repoIcons: TPngImageList;
     toolbarIcons: TImageList;
     actShowUnversioned: TAction;
+    ActionManager1: TActionManager;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -233,7 +234,7 @@ begin
   if actShowUnversioned.Checked then
     Include(allowedStates, fsUnversioned);
   // modified...
-  if actModifiedOnly.Checked then
+  if actModifiedOnly.Checked and (not actShowIgnored.Checked) then
     Exclude(allowedStates, fsNormal);
   Visible := Visible and (item.state in allowedStates);
 end;

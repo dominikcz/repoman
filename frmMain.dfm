@@ -27,22 +27,22 @@ object MainForm: TMainForm
       Caption = 'Repo'
       inline ViewFilesBrowser1: TViewFilesBrowser
         Left = 0
-        Top = 0
+        Top = 26
         Width = 976
-        Height = 614
+        Height = 588
         Align = alClient
         TabOrder = 0
-        ExplicitTop = 29
+        ExplicitTop = 26
         ExplicitWidth = 976
-        ExplicitHeight = 585
+        ExplicitHeight = 588
         inherited Splitter1: TSplitter
-          Height = 465
-          ExplicitHeight = 481
+          Height = 455
+          ExplicitHeight = 439
         end
         inherited Splitter2: TSplitter
-          Top = 522
+          Top = 496
           Width = 976
-          ExplicitTop = 522
+          ExplicitTop = 496
           ExplicitWidth = 976
         end
         inherited Panel1: TPanel
@@ -50,21 +50,43 @@ object MainForm: TMainForm
           ExplicitWidth = 976
         end
         inherited log: TMemo
-          Top = 525
+          Top = 499
           Width = 976
-          ExplicitTop = 496
+          ExplicitTop = 499
           ExplicitWidth = 976
         end
         inherited dirTree: TVirtualStringTree
-          Height = 465
-          ExplicitHeight = 436
+          Height = 455
+          ExplicitHeight = 455
         end
         inherited fileList: TVirtualStringTree
           Width = 773
-          Height = 465
+          Height = 455
           ExplicitWidth = 773
-          ExplicitHeight = 436
+          ExplicitHeight = 455
         end
+      end
+      object ActionToolBar1: TActionToolBar
+        Left = 0
+        Top = 0
+        Width = 976
+        Height = 26
+        ActionManager = Repo.ActionManager1
+        Caption = 'ActionToolBar1'
+        Color = clMenuBar
+        ColorMap.DisabledFontColor = 7171437
+        ColorMap.HighlightColor = clWhite
+        ColorMap.BtnSelectedFont = clBlack
+        ColorMap.UnusedColor = clWhite
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
+        Spacing = 5
       end
     end
     object tabCommit: TTabSheet

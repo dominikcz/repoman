@@ -75,7 +75,6 @@ var
 begin
   lList := TDirectory.GetDirectories(root, 'CVS', TSearchOption.soAllDirectories);
   sl := TStringList.Create;
-  sl.CaseSensitive := false;
   for dir in lList do
   begin
     // dodajemy g³ówne foldery
@@ -152,15 +151,11 @@ begin
       end;
     end;
   end;
-  sl.Clear;
   FEntries.Sort(TComparer<TCVSEntry>.Construct(
     function(const Left, Right: TCVSEntry): integer
     begin
       Result := AnsiCompareStr(Left.name, Right.name);
     end));
-  for item in FEntries do
-    sl.Add(item.name);
-  sl.SaveToFile(ExtractFilePath(ParamStr(0)) + 'cvsentries.txt');
 
   sl.Free;
 end;

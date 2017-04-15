@@ -15,6 +15,7 @@ object Repo: TRepo
     object actFlatMode: TAction
       AutoCheck = True
       Caption = 'flat mode'
+      Checked = True
       Hint = 'toggle flat mode'
       ImageIndex = 0
       OnExecute = refreshView
@@ -42,7 +43,7 @@ object Repo: TRepo
     end
     object actRefresh: TAction
       Caption = 'actRefresh'
-      ImageIndex = 4
+      ImageIndex = 5
       SecondaryShortCuts.Strings = (
         'Ctrl+R')
       ShortCut = 116
@@ -267,7 +268,7 @@ object Repo: TRepo
     Left = 192
     Top = 144
     Bitmap = {
-      494C0101060060003C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010106006000440010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -537,5 +538,135 @@ object Repo: TRepo
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000}
+  end
+  object ActionManager1: TActionManager
+    ActionBars = <
+      item
+        Items.CaptionOptions = coAll
+        Items = <
+          item
+            Action = actFlatMode
+            Caption = '&flat mode'
+            ImageIndex = 0
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 4
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
+            ImageIndex = 2
+          end
+          item
+            Action = actShowIgnored
+            Caption = '&ignored'
+            ImageIndex = 3
+          end
+          item
+            Action = actRefresh
+            Caption = '&actRefresh'
+            ImageIndex = 5
+            ShortCut = 116
+          end>
+      end
+      item
+        Items = <
+          item
+            Action = actFlatMode
+            Caption = '&flat mode'
+            ImageIndex = 0
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 4
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
+            ImageIndex = 2
+          end
+          item
+            Action = actShowIgnored
+            Caption = '&ignored'
+            ImageIndex = 3
+          end
+          item
+            Action = actRefresh
+            Caption = '&actRefresh'
+            ImageIndex = 5
+            ShortCut = 116
+          end>
+      end
+      item
+        Items = <
+          item
+            Action = actFlatMode
+            Caption = '&flat mode'
+            ImageIndex = 0
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 4
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
+            ImageIndex = 2
+          end
+          item
+            Action = actShowIgnored
+            Caption = '&ignored'
+            ImageIndex = 3
+          end
+          item
+            Action = actRefresh
+            Caption = '&actRefresh'
+            ImageIndex = 5
+            ShortCut = 116
+          end>
+      end
+      item
+        Items = <
+          item
+            Action = actFlatMode
+            Caption = '&flat mode'
+            ImageIndex = 0
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 4
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
+            ImageIndex = 2
+          end
+          item
+            Action = actShowIgnored
+            Caption = '&ignored'
+            ImageIndex = 3
+          end
+          item
+            Action = actRefresh
+            Caption = '&actRefresh'
+            ImageIndex = 5
+            ShortCut = 116
+          end>
+        ActionBar = MainForm.ActionToolBar1
+      end>
+    LinkedActionLists = <
+      item
+        ActionList = alViewActions
+        Caption = 'alViewActions'
+      end>
+    Images = toolbarIcons
+    Left = 328
+    Top = 32
+    StyleName = 'Platform Default'
   end
 end

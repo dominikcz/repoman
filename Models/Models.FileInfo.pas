@@ -125,15 +125,11 @@ begin
   lList := TDirectory.GetFiles(rootPath, '*', LSearchOption);
   TArray.Sort<string>(lList, caseInsensitiveAnsiComparer);
   Clear;
-  sl := TStringList.Create;
   for s in lList do
   begin
     item := TFileInfo.Create(s, rootPath);
     Add(item);
-    sl.add(item.fullPath);
   end;
-  sl.SaveToFile(ExtractFilePath(paramStr(0))+'filelist.txt');
-  sl.Free;
 end;
 
 function TFilesList.tryToFind(path: string; out item: TFileInfo): boolean;

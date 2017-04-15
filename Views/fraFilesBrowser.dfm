@@ -6,8 +6,8 @@ object ViewFilesBrowser: TViewFilesBrowser
   TabOrder = 0
   object Splitter1: TSplitter
     Left = 200
-    Top = 57
-    Height = 305
+    Top = 41
+    Height = 321
     ExplicitLeft = 208
     ExplicitTop = 232
     ExplicitHeight = 100
@@ -27,59 +27,19 @@ object ViewFilesBrowser: TViewFilesBrowser
     Left = 0
     Top = 0
     Width = 963
-    Height = 57
+    Height = 41
     Align = alTop
     BevelOuter = bvNone
     Caption = 'pnlTop'
     ShowCaption = False
     TabOrder = 0
-    object btnFlatMode: TSpeedButton
-      Left = 234
-      Top = 30
-      Width = 80
-      Height = 21
-      Action = Repo.actFlatMode
-      AllowAllUp = True
-    end
-    object btnModifiedOnly: TSpeedButton
-      Left = 321
-      Top = 30
-      Width = 73
-      Height = 21
-      Action = Repo.actModifiedOnly
-      AllowAllUp = True
-    end
-    object btnShowUnversioned: TSpeedButton
-      Left = 400
-      Top = 30
-      Width = 89
-      Height = 21
-      Action = Repo.actShowUnversioned
-      AllowAllUp = True
-    end
-    object btnShowIgnored: TSpeedButton
-      Left = 494
-      Top = 30
-      Width = 81
-      Height = 21
-      Action = Repo.actShowIgnored
-      AllowAllUp = True
-    end
     object edtWorkingCopyPath: TEdit
-      Left = 10
-      Top = 30
+      Left = 8
+      Top = 11
       Width = 185
       Height = 21
       TabOrder = 0
       OnExit = edtWorkingCopyPathChange
-    end
-    object Button1: TButton
-      Left = 672
-      Top = 29
-      Width = 75
-      Height = 25
-      Action = Repo.actRefresh
-      TabOrder = 1
     end
   end
   object log: TMemo
@@ -94,9 +54,9 @@ object ViewFilesBrowser: TViewFilesBrowser
   end
   object dirTree: TVirtualStringTree
     Left = 0
-    Top = 57
+    Top = 41
     Width = 200
-    Height = 305
+    Height = 321
     Align = alLeft
     AnimationDuration = 100
     AutoExpandDelay = 0
@@ -125,9 +85,9 @@ object ViewFilesBrowser: TViewFilesBrowser
   end
   object fileList: TVirtualStringTree
     Left = 203
-    Top = 57
+    Top = 41
     Width = 760
-    Height = 305
+    Height = 321
     Align = alClient
     BevelInner = bvNone
     BevelOuter = bvNone

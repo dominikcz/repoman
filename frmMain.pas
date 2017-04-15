@@ -14,6 +14,7 @@ type
     tabCodeReview: TTabSheet;
     tabCommit: TTabSheet;
     ViewFilesBrowser1: TViewFilesBrowser;
+    ActionToolBar1: TActionToolBar;
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
@@ -33,15 +34,6 @@ uses
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  ViewFilesBrowser1.btnFlatMode.GroupIndex := 1;
-  ViewFilesBrowser1.btnModifiedOnly.GroupIndex := 2;
-  ViewFilesBrowser1.btnShowUnversioned.GroupIndex := 3;
-  ViewFilesBrowser1.btnShowIgnored.GroupIndex := 4;
-
-  //DC: wioska, ale co zrobiæ...
-  ViewFilesBrowser1.btnFlatMode.Down := true;
-  repo.actFlatMode.Checked := true;
-
   repo.actRefreshExecute(sender);
 end;
 
