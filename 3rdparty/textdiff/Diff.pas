@@ -2,11 +2,11 @@ unit Diff;
 
 (*******************************************************************************
 * Component         TDiff                                                      *
-* Version:          3.1                                                        *
-* Date:             7 November 2009                                            *
-* Compilers:        Delphi 7 - Delphi2009                                      *
-* Author:           Angus Johnson - angusj-AT-myrealbox-DOT-com                *
-* Copyright:        © 2001-200( Angus Johnson                                  *
+* Version:          3.1c                                                       *
+* Date:             11 April 2015                                              *
+* Compilers:        Delphi 7 - Delphi XE2                                      *
+* Author:           Angus Johnson                                              *
+* Copyright:        © 2001-2015 Angus Johnson                                  *
 *                                                                              *
 * Licence to use, terms and conditions:                                        *
 *                   The code in the TDiff component is released as freeware    *
@@ -63,8 +63,14 @@ type
   PDiags = ^TDiags;
   TDiags = array [-MAX_DIAGONAL .. MAX_DIAGONAL] of integer;
 
+{$IFDEF WIN64}
+  PInt64Array = ^TInt64Array;
+  TInt64Array = array[0 .. MAXINT div sizeof(Int64) -1] of Int64;
+{$ELSE}
   PIntArray = ^TIntArray;
   TIntArray = array[0 .. MAXINT div sizeof(integer) -1] of Integer;
+{$ENDIF}
+
   PChrArray = ^TChrArray;
   TChrArray = array[0 .. MAXINT div sizeof(char) -1] of Char;
 
@@ -94,7 +100,11 @@ type
     fExecuting: boolean;
     fDiagBuffer, bDiagBuffer: pointer;
     Chrs1, Chrs2: PChrArray;
+{$IFDEF WIN64}
+    Ints1, Ints2: PInt64Array;
+{$ELSE}
     Ints1, Ints2: PIntArray;
+{$ENDIF}
     LastCompareRec: TCompareRec;
     fDiag, bDiag: PDiags;
     fDiffStats: TDiffStats;
@@ -113,7 +123,11 @@ type
     destructor Destroy; override;
 
     //compare either and array of characters or an array of integers ...
+{$IFDEF WIN64}
+    function Execute(pints1, pints2: PInt64; len1, len2: integer): boolean;  overload;
+{$ELSE}
     function Execute(pints1, pints2: PInteger; len1, len2: integer): boolean; overload;
+{$ENDIF}
     function Execute(pchrs1, pchrs2: PChar; len1, len2: integer): boolean; overload;
 
     //Cancel allows interrupting excessively prolonged comparisons
@@ -231,7 +245,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 
+{$IFDEF WIN64}
+function TDiff.Execute(pints1, pints2: PInt64; len1, len2: integer): boolean;
+{$ELSE}
 function TDiff.Execute(pints1, pints2: PInteger; len1, len2: integer): boolean;
+{$ENDIF}
 var
   maxOscill, x1,x2, savedLen: integer;
   compareRec: PCompareRec;

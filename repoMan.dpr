@@ -11,7 +11,12 @@ uses
   repoHelper in 'repoHelper.pas',
   repoHelper.CVS in 'repoHelper.CVS.pas',
   frmDiff in 'Views\frmDiff.pas' {DiffForm},
-  formManager in 'formManager.pas';
+  formManager in 'formManager.pas',
+  Diff in '3rdparty\textdiff\Diff.pas',
+  CodeEditor in '3rdparty\textdiff\TextDiff\CodeEditor.pas',
+  FindReplace in '3rdparty\textdiff\TextDiff\FindReplace.pas',
+  HashUnit in '3rdparty\textdiff\TextDiff\HashUnit.pas',
+  Searches in '3rdparty\textdiff\TextDiff\Searches.pas';
 
 {$R *.res}
 
