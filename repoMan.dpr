@@ -9,7 +9,9 @@ uses
   fraCommitView in 'Views\fraCommitView.pas' {ViewCommit: TFrame},
   whizaxe.VSTHelper.Tree in 'whizaxe.VSTHelper.Tree.pas',
   repoHelper in 'repoHelper.pas',
-  repoHelper.CVS in 'repoHelper.CVS.pas';
+  repoHelper.CVS in 'repoHelper.CVS.pas',
+  frmDiff in 'Views\frmDiff.pas' {DiffForm},
+  formManager in 'formManager.pas';
 
 {$R *.res}
 

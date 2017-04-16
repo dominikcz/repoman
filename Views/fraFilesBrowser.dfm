@@ -102,11 +102,13 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     Images = Repo.repoIcons
     Indent = 20
+    PopupMenu = Repo.popupRepoActions
     TabOrder = 3
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.SelectionOptions = [toFullRowSelect]
-    ExplicitWidth = 888
+    ExplicitLeft = 206
+    ExplicitTop = 38
     Columns = <
       item
         Position = 0

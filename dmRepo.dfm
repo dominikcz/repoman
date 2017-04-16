@@ -13,27 +13,28 @@ object Repo: TRepo
       Caption = 'diff'
       ImageIndex = 2
       ShortCut = 16452
-      OnUpdate = FileActionUpdate
+      OnExecute = actDiffExecute
+      OnUpdate = SingleFileActionUpdate
     end
     object actGraph: TAction
       Category = 'repo'
       Caption = 'graph'
       ImageIndex = 5
       ShortCut = 16455
-      OnUpdate = FileActionUpdate
+      OnUpdate = SingleFileActionUpdate
     end
     object actLog: TAction
       Category = 'repo'
       Caption = 'log'
       ImageIndex = 3
       ShortCut = 16460
-      OnUpdate = FileActionUpdate
+      OnUpdate = SingleFileActionUpdate
     end
     object actAnnotate: TAction
       Category = 'repo'
       Caption = 'annotate/blame'
       ImageIndex = 4
-      OnUpdate = FileActionUpdate
+      OnUpdate = SingleFileActionUpdate
     end
     object actAdd: TAction
       Category = 'repo'
@@ -45,7 +46,7 @@ object Repo: TRepo
       Category = 'repo'
       Caption = 'remove'
       ImageIndex = 1
-      OnUpdate = FileActionUpdate
+      OnUpdate = actRemoveUpdate
     end
   end
   object alViewActions: TActionList
@@ -605,5 +606,31 @@ object Repo: TRepo
     Left = 104
     Top = 184
     Bitmap = {}
+  end
+  object popupRepoActions: TPopupActionBar
+    Images = repoActionsIcons
+    Left = 224
+    Top = 144
+    object diff1: TMenuItem
+      Action = actDiff
+    end
+    object graph1: TMenuItem
+      Action = actGraph
+    end
+    object log1: TMenuItem
+      Action = actLog
+    end
+    object annotateblame1: TMenuItem
+      Action = actAnnotate
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object add1: TMenuItem
+      Action = actAdd
+    end
+    object remove1: TMenuItem
+      Action = actRemove
+    end
   end
 end

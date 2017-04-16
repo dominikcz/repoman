@@ -31,6 +31,7 @@ type
     procedure SetOffset(const Value: Int64); override;
     function RowCount: int64; override;
     function GetModel: TObjectList<T>; override;
+    procedure SortModel(Column: TColumnIndex; SortDirection: TSortDirection = sdAscending); override;
     function DoTryGetModelItem(Model: TObjectList<T>;Node: PVirtualNode; out item: T): boolean; override;
 
 //    function DoTryGetModelItem(Node: PVirtualNode; out item: T): boolean; override;
@@ -125,6 +126,11 @@ end;
 procedure TVSTHelperTree<T>.SetOffset(const Value: Int64);
 begin
 // DC: celowo puste
+end;
+
+procedure TVSTHelperTree<T>.SortModel(Column: TColumnIndex; SortDirection: TSortDirection);
+begin
+//
 end;
 
 procedure TVSTHelperTree<T>.vstTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;

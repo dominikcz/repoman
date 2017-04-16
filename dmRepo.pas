@@ -14,7 +14,7 @@ uses
   Vcl.ImgList,
   Vcl.Controls,
   PngImageList,
-  VirtualTrees, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan
+  VirtualTrees, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.Menus, Vcl.ActnPopup
   ;
 
 type
@@ -38,23 +38,36 @@ type
     actAnnotate: TAction;
     actAdd: TAction;
     actRemove: TAction;
+    popupRepoActions: TPopupActionBar;
+    diff1: TMenuItem;
+    graph1: TMenuItem;
+    log1: TMenuItem;
+    annotateblame1: TMenuItem;
+    N1: TMenuItem;
+    add1: TMenuItem;
+    remove1: TMenuItem;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
     function  _FilterModelByPath(path: string): boolean;
     procedure refreshView(Sender: TObject);
     procedure actRefreshExecute(Sender: TObject);
-    procedure FileActionUpdate(Sender: TObject);
+    procedure SingleFileActionUpdate(Sender: TObject);
     procedure actAddUpdate(Sender: TObject);
+    procedure actDiffExecute(Sender: TObject);
+    procedure actRemoveUpdate(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
     FFiles: TFilesList;
     FDirs: TDirsList;
     FIgnoreList: TStringList;
+    FCmdResult: TStringList;
     FRepoHelper: IRepoHelper;
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
+    FUseExternalDiff: boolean;
+    FExternalDiffPath: string;
     procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
     procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -84,7 +97,10 @@ implementation
 uses
   System.IOUtils,
   frmMain,
-  whizaxe.vclHelper;
+  whizaxe.vclHelper,
+  whizaxe.processes,
+  formManager,
+  frmDiff;
 
 var
   vRepo: TRepo;
@@ -103,8 +119,34 @@ procedure TRepo.actAddUpdate(Sender: TObject);
 var
   item: TFileInfo;
 begin
+  // TODO: multiselekcja
+
   item := FFileListHelper.SelectedItem;
   TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
+end;
+
+procedure TRepo.actDiffExecute(Sender: TObject);
+var
+  item: TFileInfo;
+  cmd: string;
+  outputFileName: string;
+begin
+  item := FFileListHelper.SelectedItem;
+  if not Assigned(item) then
+    exit;
+  cmd := FRepoHelper.getUpdateCmd(item);
+  MainForm.ViewFilesBrowser1.log.Lines.Add(cmd);
+  if FRepoHelper.diffFile(item, outputFileName) = 0 then
+  begin
+    if FUseExternalDiff then
+      TProcesses.ExecBatch(FExternalDiffPath, outputFileName + ' ' + item.fullPath, '', 1)
+    else
+    begin
+      FCmdResult.LoadFromFile(outputFileName);
+      forms.add(TDiffForm.Create(nil), 'Diff '+ExtractFileName(outputFileName)).Show;
+    end;
+
+  end;
 end;
 
 procedure TRepo.actRefreshExecute(Sender: TObject);
@@ -117,6 +159,16 @@ begin
   FDirHelper.TreeView.RootNodeCount := 1;
   RefreshCurrentListing;
   FDirHelper.TreeView.Expanded[FDirHelper.TreeView.GetFirst] := true;
+end;
+
+procedure TRepo.actRemoveUpdate(Sender: TObject);
+var
+  item: TFileInfo;
+begin
+  // TODO: multiselekcja
+
+  item := FFileListHelper.SelectedItem;
+  TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
 end;
 
 procedure TRepo.DataModuleCreate(Sender: TObject);
@@ -157,6 +209,11 @@ begin
 
   PrepareIgnoreList(ExtractFileDir(paramStr(0)));
   FFileListHelper.OnFiltered := hndVstFiltered;
+
+  FCmdResult := TStringList.Create;
+
+  FUseExternalDiff := false;
+  FExternalDiffPath := 'c:\Program Files (x86)\WinMerge\WinmergeU.exe';
 end;
 
 procedure TRepo.DataModuleDestroy(Sender: TObject);
@@ -168,9 +225,11 @@ begin
   FDirHelper.Free;
 
   FIgnoreList.Free;
+
+  FCmdResult.Free;
 end;
 
-procedure TRepo.FileActionUpdate(Sender: TObject);
+procedure TRepo.SingleFileActionUpdate(Sender: TObject);
 var
   item: TFileInfo;
 begin

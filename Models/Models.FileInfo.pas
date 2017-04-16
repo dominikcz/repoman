@@ -25,6 +25,8 @@ type
     branch: string;
     constructor Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
     property stateAsStr: string read getStateAsStr;
+    function getTempFileName: string;
+    function getFullPathWithoutRoot(ARoot: string): string;
   end;
 
   TDirInfo = class
@@ -95,16 +97,31 @@ begin
   fileName := TPath.GetFileName(AFullPath);
   path := TPath.GetDirectoryName(AFullPath);
   ext := TPath.GetExtension(AFullPath);
-  if ARoot <> '' then
-    shortPath := AFullPath.Substring(ARoot.Length + 1)
-  else
-    shortPath := AFullPath;
+  shortPath := getFullPathWithoutRoot(ARoot);
   state := AState;
+end;
+
+function TFileInfo.getFullPathWithoutRoot(ARoot: string): string;
+begin
+  if ARoot <> '' then
+    Result := fullPath.Substring(ARoot.Length + 1)
+  else
+    Result := fullPath;
 end;
 
 function TFileInfo.getStateAsStr: string;
 begin
   result := FileStateStr[self.state];
+end;
+
+function TFileInfo.getTempFileName: string;
+begin
+  result := TPath.Combine(TPath.GetTempPath,
+    TPath.GetFileNameWithoutExtension(fileName)
+    + '_'
+    + self.revision
+    + TPath.GetExtension(filename)
+  );
 end;
 
 { TFilesList }

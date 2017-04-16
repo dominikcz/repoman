@@ -6,7 +6,8 @@ uses
   System.Types,
   Generics.Collections,
   repoHelper,
-  Models.FileInfo;
+  Models.FileInfo,
+  Classes;
 
 type
   TCVSEntry = class
@@ -31,10 +32,17 @@ type
   TRepoHelperCVS = class(TInterfacedObject, IRepoHelper)
   private
     FEntries: TCVSEntries;
+    FRootPath: string;
+    FCVSROOT: string;
+    FDiffCmd: string;
+    function ExecCmd(cmd, params, redirectTo: string): integer;
   public
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
+    function getUpdateCmd(item: TFileInfo): string;
+    function diffFile(item: TFileInfo; out outputFile: string): integer;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -43,22 +51,40 @@ implementation
 
 uses
   System.IOUtils,
-  Classes,
   SysUtils,
+  Windows,
   whizaxe.common,
-  Generics.Defaults;
+  Generics.Defaults,
+  whizaxe.processes;
 
 { TRepoHelperCVS }
 
 constructor TRepoHelperCVS.Create;
 begin
   FEntries := TCVSEntries.Create;
+  FDiffCmd := ExtractFilePath(ParamStr(0))+'helpers\cvs\diff.cmd';
 end;
 
 destructor TRepoHelperCVS.Destroy;
 begin
   FEntries.Free;
   inherited;
+end;
+
+function TRepoHelperCVS.ExecCmd(cmd, params, redirectTo: string): integer;
+begin
+  params := params + ' > '+redirectTo;
+  {$IFNDEF FAKE_CVS}
+  result := TProcesses.ExecBatch(cmd, params, FRootPath);
+  {$ELSE}
+  result := 0;
+  {$ENDIF}
+end;
+
+function TRepoHelperCVS.getUpdateCmd(item: TFileInfo): string;
+begin
+  //depreciated....
+  Result := format('cvs.exe update -d %s -p -r %s -- %s', [FCVSROOT, item.revision, item.getFullPathWithoutRoot(FRootPath)]);
 end;
 
 procedure TRepoHelperCVS.Init(root: string);
@@ -72,11 +98,25 @@ var
   i: integer;
   tmp: TArray<string>;
   basePath: string;
+  isRootInitialized: Boolean;
+  s: string;
 begin
+  FRootPath := root;
+  isRootInitialized := false;
   lList := TDirectory.GetDirectories(root, 'CVS', TSearchOption.soAllDirectories);
   sl := TStringList.Create;
   for dir in lList do
   begin
+    if not isRootInitialized then
+    begin
+      s := TPath.Combine(dir, 'root');
+      if FileExists(s) then
+      begin
+        FCVSROOT := trim(TFile.ReadAllText(s));
+        isRootInitialized := SetEnvironmentVariable('CVSROOT', PChar(FCVSROOT));
+      end;
+    end;
+
     // dodajemy g³ówne foldery
     item := TCVSEntry.Create;
     item.isDir := true;
@@ -187,6 +227,15 @@ begin
         inc(lastRepoIdx); // TODO: zoptymalizowaæ przez analizê œcie¿ki?
       until (lastRepoIdx >= max);
   end;
+end;
+
+function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string): integer;
+var
+  params: string;
+begin
+  params := item.revision + ' ' + item.getFullPathWithoutRoot(FRootPath);
+  outputFile := item.getTempFileName;
+  result := ExecCmd(FDiffCmd, params, outputFile);
 end;
 
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);
