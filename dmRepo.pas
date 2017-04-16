@@ -1,3 +1,19 @@
+//TODO:
+// - porównanie plików
+// - prosty annotate
+// - log i historia z filtrami na: branch/usera/od daty/modu³
+// - graf
+// - dodawanie, usuwanie, commit, import
+// - tryb git
+// - code review
+// - operacje asychroniczne na repo
+// - annotate z szukaniem w historii
+// - obs³uga git'a
+// - sprawdzanie pisowni
+// - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
+// - BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
+
+
 unit dmRepo;
 
 interface

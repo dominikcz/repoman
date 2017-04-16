@@ -235,7 +235,9 @@ var
 begin
   params := item.revision + ' ' + item.getFullPathWithoutRoot(FRootPath);
   outputFile := item.getTempFileName;
-  result := ExecCmd(FDiffCmd, params, outputFile);
+  result := 0;
+  if not FileExists(outputFile) then
+    result := ExecCmd(FDiffCmd, params, outputFile);
 end;
 
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);
