@@ -16,7 +16,8 @@ uses
   CodeEditor in '3rdparty\textdiff\TextDiff\CodeEditor.pas',
   FindReplace in '3rdparty\textdiff\TextDiff\FindReplace.pas',
   HashUnit in '3rdparty\textdiff\TextDiff\HashUnit.pas',
-  Searches in '3rdparty\textdiff\TextDiff\Searches.pas';
+  Searches in '3rdparty\textdiff\TextDiff\Searches.pas',
+  frmDiff.utils in 'Views\frmDiff.utils.pas';
 
 {$R *.res}
 

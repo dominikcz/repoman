@@ -69,6 +69,8 @@ object MainForm: TMainForm
           Width = 831
           Height = 455
           Header.Height = 18
+          ExplicitLeft = 203
+          ExplicitTop = 41
           ExplicitWidth = 831
           ExplicitHeight = 455
           Columns = <
@@ -131,7 +133,6 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
-        ExplicitTop = 2
       end
     end
     object tabCommit: TTabSheet

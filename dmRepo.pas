@@ -146,6 +146,7 @@ var
   item: TFileInfo;
   cmd: string;
   outputFileName: string;
+  diffForm: TDiffForm;
 begin
   item := FFileListHelper.SelectedItem;
   if not Assigned(item) then
@@ -159,7 +160,9 @@ begin
     else
     begin
       FCmdResult.LoadFromFile(outputFileName);
-      forms.add(TDiffForm.Create(nil), 'Diff '+ExtractFileName(outputFileName)).Show;
+      diffForm := TDiffForm.Create(nil);
+      diffForm.Load(outputFileName, item.fullPath);
+      forms.add(diffForm, 'Diff '+ExtractFileName(outputFileName)).Show;
     end;
 
   end;
