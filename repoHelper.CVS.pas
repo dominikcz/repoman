@@ -233,7 +233,7 @@ function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string): integ
 var
   params: string;
 begin
-  params := item.revision + ' ' + item.getFullPathWithoutRoot(FRootPath);
+  params := item.revision + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
   outputFile := item.getTempFileName;
   result := 0;
   if not FileExists(outputFile) then

@@ -1,5 +1,6 @@
 //TODO:
-// - porównanie plików
+// + porównanie plików
+// + zewnêtrza edycja
 // - prosty annotate
 // - log i historia z filtrami na: branch/usera/od daty/modu³
 // - graf
@@ -30,7 +31,12 @@ uses
   Vcl.ImgList,
   Vcl.Controls,
   PngImageList,
-  VirtualTrees, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.Menus, Vcl.ActnPopup
+  VirtualTrees,
+  Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnMan,
+  Vcl.Menus,
+  Vcl.ActnPopup,
+  repoManConfig
   ;
 
 type
@@ -54,6 +60,7 @@ type
     actAnnotate: TAction;
     actAdd: TAction;
     actRemove: TAction;
+    actEdit: TAction;
     popupRepoActions: TPopupActionBar;
     diff1: TMenuItem;
     graph1: TMenuItem;
@@ -62,6 +69,7 @@ type
     N1: TMenuItem;
     add1: TMenuItem;
     remove1: TMenuItem;
+    edit1: TMenuItem;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -72,6 +80,7 @@ type
     procedure actAddUpdate(Sender: TObject);
     procedure actDiffExecute(Sender: TObject);
     procedure actRemoveUpdate(Sender: TObject);
+    procedure actEditExecute(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -82,8 +91,7 @@ type
     FRepoHelper: IRepoHelper;
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
-    FUseExternalDiff: boolean;
-    FExternalDiffPath: string;
+    FConfig: TRepoManCfg;
     procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
     procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -100,6 +108,7 @@ type
     function isVisible(item: TFileInfo): boolean;
   public
     { Public declarations }
+    procedure CloseAllChildForms;
   end;
 
 function Repo: TRepo;
@@ -155,8 +164,8 @@ begin
   MainForm.ViewFilesBrowser1.log.Lines.Add(cmd);
   if FRepoHelper.diffFile(item, outputFileName) = 0 then
   begin
-    if FUseExternalDiff then
-      TProcesses.ExecBatch(FExternalDiffPath, outputFileName + ' ' + item.fullPath, '', 1)
+    if FConfig.UseExternalDiff then
+      TProcesses.ExecBatch(FConfig.ExternalDiffPath, '"'+outputFileName + '" "' + item.fullPath+'"', '', 1)
     else
     begin
       FCmdResult.LoadFromFile(outputFileName);
@@ -166,6 +175,17 @@ begin
     end;
 
   end;
+end;
+
+procedure TRepo.actEditExecute(Sender: TObject);
+var
+  item: TFileInfo;
+begin
+  item := FFileListHelper.SelectedItem;
+  if not Assigned(item) then
+    exit;
+  if FConfig.ExternalEditor <> '' then
+    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
 end;
 
 procedure TRepo.actRefreshExecute(Sender: TObject);
@@ -190,8 +210,15 @@ begin
   TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
 end;
 
+procedure TRepo.CloseAllChildForms;
+begin
+  forms.Clear;
+end;
+
 procedure TRepo.DataModuleCreate(Sender: TObject);
 begin
+  FConfig := TRepoManCfg.Create;
+
   FFiles := TFilesList.Create;
   FDirs := TDirsList.Create;
   FIgnoreList := TStringList.Create;
@@ -230,9 +257,6 @@ begin
   FFileListHelper.OnFiltered := hndVstFiltered;
 
   FCmdResult := TStringList.Create;
-
-  FUseExternalDiff := false;
-  FExternalDiffPath := 'c:\Program Files (x86)\WinMerge\WinmergeU.exe';
 end;
 
 procedure TRepo.DataModuleDestroy(Sender: TObject);
@@ -246,6 +270,7 @@ begin
   FIgnoreList.Free;
 
   FCmdResult.Free;
+  FConfig.Free;
 end;
 
 procedure TRepo.SingleFileActionUpdate(Sender: TObject);

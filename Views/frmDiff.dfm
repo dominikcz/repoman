@@ -27,126 +27,135 @@ object DiffForm: TDiffForm
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
-  object pnlMain: TPanel
-    Left = 49
+  object Splitter2: TSplitter
+    Left = 80
     Top = 26
-    Width = 857
-    Height = 474
+    Height = 494
+    ExplicitLeft = 0
+    ExplicitTop = 104
+    ExplicitHeight = 100
+  end
+  object pnlMain: TPanel
+    Left = 83
+    Top = 26
+    Width = 823
+    Height = 494
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitTop = 0
-    ExplicitWidth = 704
-    ExplicitHeight = 477
     object Splitter1: TSplitter
-      Left = 465
+      Left = 425
       Top = 0
-      Height = 474
-      ExplicitLeft = 315
-      ExplicitHeight = 418
+      Height = 494
+      ExplicitLeft = 224
+      ExplicitTop = 24
+      ExplicitHeight = 474
     end
-    object pnlLeft: TPanel
+    object pnl1: TPanel
       Left = 0
       Top = 0
-      Width = 465
-      Height = 474
+      Width = 425
+      Height = 494
       Align = alLeft
-      Caption = 'pnlLeft'
+      BevelInner = bvLowered
+      BorderWidth = 3
+      Caption = 'pnl1'
       TabOrder = 0
-      ExplicitHeight = 477
-      object pnlCaptionLeft: TPanel
-        Left = 1
-        Top = 1
-        Width = 463
-        Height = 20
-        Align = alTop
-        Alignment = taLeftJustify
-        ParentBackground = False
+      inline FrameEditor1: TFrameEditor
+        Left = 5
+        Top = 5
+        Width = 415
+        Height = 484
+        Align = alClient
         TabOrder = 0
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 465
+        ExplicitLeft = 5
+        ExplicitTop = 5
+        ExplicitWidth = 415
+        ExplicitHeight = 484
+        inherited pnlEditor: TPanel
+          Width = 415
+          Height = 459
+          ExplicitWidth = 415
+          ExplicitHeight = 459
+          inherited codeEditor: TSynEdit
+            Width = 413
+            Height = 457
+            ExplicitWidth = 413
+            ExplicitHeight = 457
+          end
+        end
+        inherited pnlCaption: TPanel
+          Width = 415
+          ExplicitWidth = 415
+        end
       end
     end
-    object pnlRight: TPanel
-      Left = 468
+    object pnl2: TPanel
+      Left = 428
       Top = 0
-      Width = 389
-      Height = 474
+      Width = 395
+      Height = 494
       Align = alClient
-      Caption = 'pnlRight'
+      BevelInner = bvLowered
+      BorderWidth = 3
+      Caption = 'pnl2'
       TabOrder = 1
-      ExplicitWidth = 236
-      ExplicitHeight = 477
-      object pnlCaptionRight: TPanel
-        Left = 1
-        Top = 1
-        Width = 387
-        Height = 20
-        Align = alTop
-        Alignment = taLeftJustify
-        ParentBackground = False
+      inline FrameEditor2: TFrameEditor
+        Left = 5
+        Top = 5
+        Width = 385
+        Height = 484
+        Align = alClient
         TabOrder = 0
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 236
+        ExplicitLeft = 5
+        ExplicitTop = 5
+        ExplicitWidth = 385
+        ExplicitHeight = 484
+        inherited pnlEditor: TPanel
+          Width = 385
+          Height = 459
+          ExplicitWidth = 385
+          ExplicitHeight = 459
+          inherited codeEditor: TSynEdit
+            Width = 383
+            Height = 457
+            ExplicitWidth = 383
+            ExplicitHeight = 457
+          end
+        end
+        inherited pnlCaption: TPanel
+          Width = 385
+          Color = clInactiveCaption
+          ExplicitWidth = 385
+        end
       end
     end
   end
   object pnlNavigation: TPanel
     Left = 0
     Top = 26
-    Width = 49
-    Height = 474
+    Width = 80
+    Height = 494
     Align = alLeft
     BevelInner = bvLowered
     BorderWidth = 1
+    Constraints.MinWidth = 40
     TabOrder = 1
     Visible = False
-    ExplicitTop = 0
-    ExplicitHeight = 477
+    OnResize = pnlNavigationResize
     object pbScrollPosMarker: TPaintBox
       Left = 3
       Top = 3
-      Width = 43
-      Height = 468
+      Width = 74
+      Height = 488
       Align = alClient
-      Color = clBtnFace
+      Color = 16773866
       ParentColor = False
       OnMouseDown = pbScrollPosMarkerMouseDown
       OnMouseMove = pbScrollPosMarkerMouseMove
       OnPaint = pbScrollPosMarkerPaint
-      ExplicitLeft = 2
-      ExplicitTop = 2
-      ExplicitWidth = 17
-      ExplicitHeight = 473
+      ExplicitTop = 6
     end
-  end
-  object StatusBar: TStatusBar
-    Left = 0
-    Top = 500
-    Width = 906
-    Height = 20
-    Panels = <
-      item
-        Style = psOwnerDraw
-        Width = 22
-      end
-      item
-        Style = psOwnerDraw
-        Width = 22
-      end
-      item
-        Style = psOwnerDraw
-        Width = 22
-      end
-      item
-        Width = 50
-      end>
-    ParentFont = True
-    UseSystemFont = False
-    ExplicitTop = 453
-    ExplicitWidth = 764
   end
   object ActionToolBar1: TActionToolBar
     Left = 0
@@ -170,10 +179,9 @@ object DiffForm: TDiffForm
     Spacing = 0
   end
   object PngImageList1: TPngImageList
-    DrawingStyle = dsTransparent
     PngImages = <
       item
-        Background = clWindow
+        Background = clFuchsia
         Name = 'save'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100803000000282D0F
@@ -201,7 +209,7 @@ object DiffForm: TDiffForm
           3A3030F1B3CC9D0000000049454E44AE426082}
       end
       item
-        Background = clWindow
+        Background = clFuchsia
         Name = 'undo'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100803000000282D0F
@@ -555,6 +563,8 @@ object DiffForm: TDiffForm
     object actSave: TAction
       Caption = 'actSave'
       ImageIndex = 0
+      ShortCut = 16467
+      OnExecute = actSaveExecute
     end
     object actUndo: TAction
       Caption = 'actUndo'
@@ -622,6 +632,7 @@ object DiffForm: TDiffForm
             Action = actSave
             Caption = '&actSave'
             ImageIndex = 0
+            ShortCut = 16467
           end
           item
             Action = actUndo

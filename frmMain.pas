@@ -16,6 +16,7 @@ type
     ViewFilesBrowser1: TViewFilesBrowser;
     ActionToolBar1: TActionToolBar;
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
   public
@@ -31,6 +32,14 @@ implementation
 
 uses
   dmRepo;
+
+procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  //DC: musimy pozamykaæ wszelkie otwarte okienka zanim Delphi zrobi to za nas bo jeœli nie to
+  // SynEdit siê wydumli na assertach do TheFontsInfoManager.Destroy; i póŸniejszych
+  // jeœli rêcznie zamkniemy okienka wczeœniej to jest OK :)
+  repo.CloseAllChildForms;
+end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin

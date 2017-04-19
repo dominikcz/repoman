@@ -9,6 +9,18 @@ function MakeDarker(color: TColor): TColor;
 procedure MarkupTextOut(canvas: TCanvas; rec: TRect; x,y: integer; const text, colors: string; clrs: array of TColor);
 procedure AddStrClr(var s1, s2: string; c: char; kind, lastkind: TChangeKind);
 
+var
+  addClr, delClr, modClr: TColor;
+
+const
+  defaultAddClr = $C8FFC8; // ¿ó³ty: #efcb05 -> jaœniejszy: #f1e2ad
+  defaultModClr = $ADE2F1; // czerwony: #ef7774 -> #ffa0a0
+  defaultDelClr = $C8C8FF; // szary: #c0c0c0
+  grayColor = $c0c0c0;
+
+  // zielony: #c8ffc8 / #87ff87
+  // czerwony: #ffc8c8 / #ff9696
+
 implementation
 
 function MakeDarker(color: TColor): TColor;

@@ -4,14 +4,27 @@ interface
 
 uses
   Forms,
+  Classes,
   Generics.Collections;
 
 type
-  TFormManager = class(TObjectList<TForm>)
+  TFormWithEvents = class
+  public
+    form: TForm;
+    isClosed: boolean;
+    onDestroy: TNotifyEvent;
+    onClose: TCloseEvent;
+  end;
+
+  TFormManager = class(TObjectList<TFormWithEvents>)
   private
+    procedure hndOnFormDestroy(Sender: TObject);
     procedure hndOnFormClose(Sender: TObject; var Action: TCloseAction);
+    function findForm(Sender: TObject): integer;
+    procedure doFormClose(idx: integer);
   public
     function Add(item: TForm; caption: string = ''): TForm;
+    procedure Clear;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -33,12 +46,37 @@ end;
 { TFormManager }
 
 function TFormManager.Add(item: TForm; caption: string): TForm;
+var
+  rec: TFormWithEvents;
 begin
-  inherited Add(item);
+  rec := TFormWithEvents.Create;
+  rec.form := item;
+  rec.onClose := item.OnClose;
+  rec.onDestroy := item.OnDestroy;
+  rec.isClosed := false;
+  inherited Add(rec);
   item.OnClose := hndOnFormClose;
+  item.OnDestroy := hndOnFormDestroy;
   if caption <> '' then
     item.Caption := caption;
   result := item;
+end;
+
+procedure TFormManager.Clear;
+var
+  i: integer;
+  rec: TFormWithEvents;
+  item: TForm;
+begin
+  for i := Count - 1 downto 0 do
+  begin
+    rec := items[i];
+    item := rec.form;
+    doFormClose(i);
+    item.OnDestroy := rec.onDestroy;
+    item.Free;
+    delete(i);
+  end;
 end;
 
 constructor TFormManager.Create;
@@ -47,27 +85,59 @@ begin
 end;
 
 destructor TFormManager.Destroy;
-var
-  i: integer;
-  item: TForm;
 begin
-  for i := Count - 1 downto 0 do
-  begin
-    item := items[i];
-    item.OnClose := nil;
-    item.Close;
-    delete(i);
-  end;
+  Clear;
   inherited;
+end;
+
+procedure TFormManager.doFormClose(idx: integer);
+var
+  dummyAction: TCloseAction;
+begin
+  with items[idx] do
+  begin
+    dummyAction := caFree;
+    if (not isClosed) and Assigned(onClose) then
+      onClose(form, dummyAction);
+    isClosed := true;
+  end;
+end;
+
+function TFormManager.findForm(Sender: TObject): integer;
+var
+  i: Integer;
+begin
+  result := -1;
+  for i := 0 to Count - 1 do
+    if items[i].form = TForm(Sender) then
+      exit(i);
 end;
 
 procedure TFormManager.hndOnFormClose(Sender: TObject; var Action: TCloseAction);
 var
   idx: Integer;
 begin
-  idx := IndexOf(TForm(Sender));
-  if idx >=0 then
+  idx := findForm(Sender);
+  if idx >= 0 then
+  begin
+    doFormClose(idx);
+    Action := caFree;
+  end;
+end;
+
+procedure TFormManager.hndOnFormDestroy(Sender: TObject);
+var
+  idx: Integer;
+  rec: TFormWithEvents;
+begin
+  idx := findForm(Sender);
+  if idx >= 0 then
+  begin
+    rec := items[idx];
+    if Assigned(rec.onDestroy) then
+      rec.onDestroy(rec.form);
     Delete(idx);
+  end;
 end;
 
 initialization

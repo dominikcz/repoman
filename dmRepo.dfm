@@ -48,6 +48,14 @@ object Repo: TRepo
       ImageIndex = 1
       OnUpdate = actRemoveUpdate
     end
+    object actEdit: TAction
+      Category = 'repo'
+      Caption = 'edit'
+      ImageIndex = 6
+      ShortCut = 16397
+      OnExecute = actEditExecute
+      OnUpdate = SingleFileActionUpdate
+    end
   end
   object alViewActions: TActionList
     Images = toolbarIcons
@@ -367,6 +375,11 @@ object Repo: TRepo
             ImageIndex = 4
           end
           item
+            Action = actEdit
+            ImageIndex = 6
+            ShortCut = 16397
+          end
+          item
             Caption = '-'
           end
           item
@@ -602,6 +615,22 @@ object Repo: TRepo
           3A30362B30323A3030825229AF0000002574455874646174653A6D6F64696679
           00323031372D30342D31355432323A31303A30362B30323A3030F30F91130000
           000049454E44AE426082}
+      end
+      item
+        Background = clFuchsia
+        Name = 'edit'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
+          EA0000000467414D410000B18F0BFC610500000002624B474400FF878FCCBF00
+          0000097048597300000EC300000EC301C76FA8640000000774494D4507E1040A
+          03130F78E7C6790000001063614E7600000170000000100000000000000000D8
+          0DF82F0000004B4944415478DA63FCCFD0F89F0103D433C2588C2005F568D207
+          190EC095E05060CFD00855825501CCFCFF8C480AE09632FC879AE280AA8001C3
+          1A075C26404C198926383060037005F8010085B64D0102F36F78000000257445
+          5874646174653A63726561746500323031372D30342D31305430333A31393A31
+          352B30323A3030C5A4D8580000002574455874646174653A6D6F646966790032
+          3031372D30342D31305430333A31393A31352B30323A3030B4F960E400000000
+          49454E44AE426082}
       end>
     Left = 104
     Top = 184
@@ -622,6 +651,9 @@ object Repo: TRepo
     end
     object annotateblame1: TMenuItem
       Action = actAnnotate
+    end
+    object edit1: TMenuItem
+      Action = actEdit
     end
     object N1: TMenuItem
       Caption = '-'

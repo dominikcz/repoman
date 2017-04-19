@@ -12,6 +12,7 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
@@ -23,6 +24,7 @@ object MainForm: TMainForm
     ActivePage = tabRepoView
     Align = alClient
     TabOrder = 0
+    ExplicitTop = -6
     object tabRepoView: TTabSheet
       Caption = 'Repo'
       inline ViewFilesBrowser1: TViewFilesBrowser
@@ -58,6 +60,7 @@ object MainForm: TMainForm
         inherited log: TMemo
           Top = 499
           Width = 1034
+          Lines.Strings = ()
           ExplicitTop = 499
           ExplicitWidth = 1034
         end
@@ -133,6 +136,7 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
+        ExplicitTop = 2
       end
     end
     object tabCommit: TTabSheet
