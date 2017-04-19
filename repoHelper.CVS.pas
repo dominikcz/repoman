@@ -5,6 +5,7 @@ interface
 uses
   System.Types,
   Generics.Collections,
+  SysUtils,
   repoHelper,
   Models.FileInfo,
   Classes;
@@ -35,13 +36,20 @@ type
     FRootPath: string;
     FCVSROOT: string;
     FDiffCmd: string;
+    FOnLogging: TProc<string>;
+    FLastCmdResult: TStringList;
     function ExecCmd(cmd, params, redirectTo: string): integer;
+    function ExecCVSCmd(cmd: string): integer;
+    procedure hndCommand(buff: PAnsiChar);
   public
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
     function getUpdateCmd(item: TFileInfo): string;
     function diffFile(item: TFileInfo; out outputFile: string): integer;
+    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory): integer;
+    function getOnLogging: TProc<string>;
+    procedure setOnLogging(Value: TProc<string>);
 
     constructor Create;
     destructor Destroy; override;
@@ -51,7 +59,6 @@ implementation
 
 uses
   System.IOUtils,
-  SysUtils,
   Windows,
   whizaxe.common,
   Generics.Defaults,
@@ -63,10 +70,12 @@ constructor TRepoHelperCVS.Create;
 begin
   FEntries := TCVSEntries.Create;
   FDiffCmd := ExtractFilePath(ParamStr(0))+'helpers\cvs\diff.cmd';
+  FLastCmdResult := TStringList.Create;
 end;
 
 destructor TRepoHelperCVS.Destroy;
 begin
+  FLastCmdResult.Free;
   FEntries.Free;
   inherited;
 end;
@@ -81,10 +90,44 @@ begin
   {$ENDIF}
 end;
 
+function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
+begin
+  FLastCmdResult.Clear;
+  if Assigned(FOnLogging) then
+    FOnLogging('cvs ' + cmd + #13#10);
+  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
+  TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
+end;
+
+function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; output: TRepoHistory): integer;
+var
+  cmd: string;
+begin
+  cmd := 'history -x AMRT';
+  if sinceDate <> 0 then
+    cmd := format(cmd + ' -D "%s"', [TMcStr.DateTimeWithMsToStr(sinceDate, dtmISODate)]);
+  if forUser <> '' then
+    cmd := cmd + ' -u '+forUser;
+  result := ExecCVSCmd(cmd);
+
+end;
+
+function TRepoHelperCVS.getOnLogging: TProc<string>;
+begin
+  result := fOnLogging;
+end;
+
 function TRepoHelperCVS.getUpdateCmd(item: TFileInfo): string;
 begin
   //depreciated....
   Result := format('cvs.exe update -d %s -p -r %s -- %s', [FCVSROOT, item.revision, item.getFullPathWithoutRoot(FRootPath)]);
+end;
+
+procedure TRepoHelperCVS.hndCommand(buff: PAnsiChar);
+begin
+  FLastCmdResult.Text := FLastCmdResult.Text + buff;
+  if assigned(FOnLogging) then
+    FOnLogging(buff);
 end;
 
 procedure TRepoHelperCVS.Init(root: string);
@@ -198,6 +241,11 @@ begin
     end));
 
   sl.Free;
+end;
+
+procedure TRepoHelperCVS.setOnLogging(Value: TProc<string>);
+begin
+  fOnLogging := value;
 end;
 
 procedure TRepoHelperCVS.updateDirsState(dirs: TDirsList);

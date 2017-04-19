@@ -33,7 +33,6 @@ object ViewFilesBrowser: TViewFilesBrowser
     Caption = 'pnlTop'
     ShowCaption = False
     TabOrder = 0
-    ExplicitWidth = 963
     object edtWorkingCopyPath: TEdit
       Left = 8
       Top = 11
@@ -49,10 +48,17 @@ object ViewFilesBrowser: TViewFilesBrowser
     Width = 912
     Height = 89
     Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    Font.Style = []
     Lines.Strings = (
       'log')
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssBoth
     TabOrder = 1
-    ExplicitWidth = 963
   end
   object dirTree: TVirtualStringTree
     Left = 0
@@ -107,8 +113,6 @@ object ViewFilesBrowser: TViewFilesBrowser
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.SelectionOptions = [toFullRowSelect]
-    ExplicitLeft = 206
-    ExplicitTop = 38
     Columns = <
       item
         Position = 0

@@ -26,6 +26,7 @@ type
 
   public
     { Public declarations }
+    procedure AddToLog(buff: string);
     property RootPath: string read FRootPath write SetRootPath;
     property OnRootChange: TNotifyEvent read FOnRootChange write FOnRootChange;
   end;
@@ -38,6 +39,12 @@ uses
   dmRepo;
 
 { TViewFilesBrowser }
+
+procedure TViewFilesBrowser.AddToLog(buff: string);
+begin
+  log.Text := log.Text + buff;
+  SendMessage(log.Handle, EM_LINESCROLL, 0, log.Lines.Count);
+end;
 
 procedure TViewFilesBrowser.edtWorkingCopyPathChange(Sender: TObject);
 begin

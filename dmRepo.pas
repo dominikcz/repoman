@@ -125,7 +125,8 @@ uses
   whizaxe.vclHelper,
   whizaxe.processes,
   formManager,
-  frmDiff;
+  frmDiff,
+  DateUtils;
 
 var
   vRepo: TRepo;
@@ -180,12 +181,17 @@ end;
 procedure TRepo.actEditExecute(Sender: TObject);
 var
   item: TFileInfo;
+  hist: TRepoHistory;
 begin
   item := FFileListHelper.SelectedItem;
   if not Assigned(item) then
     exit;
-  if FConfig.ExternalEditor <> '' then
-    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
+
+  hist := TRepoHistory.Create;
+  FRepoHelper.getHistory(IncDay(now, -7), 'dc', '', hist);
+//  if FConfig.ExternalEditor <> '' then
+//    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
+  hist.Free;
 end;
 
 procedure TRepo.actRefreshExecute(Sender: TObject);
@@ -248,6 +254,13 @@ begin
   FCurrRootPath := FRootPath;
 
   FRepoHelper := TRepoHelperCVS.Create;
+  FRepoHelper.OnLogging := procedure(buff: string)
+  begin
+    with MainForm.ViewFilesBrowser1 do
+    begin
+      AddToLog(buff);
+    end;
+  end;
   FRepoHelper.Init(FRootPath);
 
   MainForm.ViewFilesBrowser1.RootPath := FRootPath;
