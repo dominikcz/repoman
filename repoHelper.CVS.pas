@@ -37,17 +37,22 @@ type
     FCVSROOT: string;
     FDiffCmd: string;
     FOnLogging: TProc<string>;
-    FLastCmdResult: TStringList;
+    FLastCmdResult: TStringStream;
     procedure notifyLogging(aMsg: string);
-    function ExecCmd(cmd, params, redirectTo: string): integer;
-    function ExecCVSCmd(cmd: string): integer;
+    function ExecBatch(cmd, params, redirectTo: string): integer;
+    function ExecCVSCmd(cmd: string): integer; overload;
+    function ExecCVSCmd(cmd, redirectTo: string): integer; overload;
     procedure hndCommand(buff: string);
+    function ParseHistory(fileName: string): TRepoHistory;
+    function doAnnotateFile(item: TFileInfo; params, prefix: string; out outputFile: string; useCache: boolean): integer;
   public
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
     function diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
-    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory; useCache: boolean): integer;
+    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; out history: TRepoHistory; useCache: boolean): integer;
+    function annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer; overload;
+    function annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string; useCache: boolean): integer; overload;
     function getOnLogging: TProc<string>;
     procedure setOnLogging(Value: TProc<string>);
 
@@ -66,11 +71,47 @@ uses
 
 { TRepoHelperCVS }
 
+function TRepoHelperCVS.annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string;
+  useCache: boolean): integer;
+var
+  params: string;
+  prefix: string;
+  dateStr: string;
+begin
+//cvs annotate -- VirtualTreeViewV6\Demos\Advanced\Advanced.res (in directory C:\mccomp\NewPos2014\komponenty\)
+//cvs annotate -D 2017-04-01 -- VirtualTreeViewV6\Demos\Advanced\Advanced.dproj (in directory C:\mccomp\NewPos2014\komponenty\)
+  prefix := 'ann_';
+  dateStr := FormatDateTime('yyyy-mm-dd hh:nn', sinceDate);
+  if sinceDate <> 0 then
+  begin
+    prefix := 'ann_'+dateStr+'_';
+    params := '-D '+dateStr;
+  end;
+  result := doAnnotateFile(item, params, prefix, outputFile, useCache);
+end;
+
+function TRepoHelperCVS.annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer;
+var
+  params: string;
+  prefix: string;
+begin
+//cvs annotate -- VirtualTreeViewV6\Demos\Advanced\Advanced.res (in directory C:\mccomp\NewPos2014\komponenty\)
+//cvs annotate -r 1.6.2.4 -- VirtualTreeViewV6\Demos\Advanced\Advanced.dproj (in directory C:\mccomp\NewPos2014\komponenty\)
+  prefix := 'ann_';
+  params := '';
+  if sinceRev <> '' then
+  begin
+    prefix := 'ann_'+sinceRev+'_';
+    params := '-r '+sinceRev;
+  end;
+  result := doAnnotateFile(item, params, prefix, outputFile, useCache);
+end;
+
 constructor TRepoHelperCVS.Create;
 begin
   FEntries := TCVSEntries.Create;
   FDiffCmd := ExtractFilePath(ParamStr(0))+'helpers\cvs\diff.cmd';
-  FLastCmdResult := TStringList.Create;
+  FLastCmdResult := TStringStream.Create;
 end;
 
 destructor TRepoHelperCVS.Destroy;
@@ -80,13 +121,23 @@ begin
   inherited;
 end;
 
-function TRepoHelperCVS.ExecCmd(cmd, params, redirectTo: string): integer;
+function TRepoHelperCVS.ExecBatch(cmd, params, redirectTo: string): integer;
 begin
   FLastCmdResult.Clear;
   notifyLogging(cmd + ' ' + params);
   params := params + ' > '+redirectTo;
 //  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
-  result := TProcesses.ExecBatch(cmd, params, FRootPath);
+  result := TProcesses.ExecBatch(cmd, params, FRootPath, 1, true);
+end;
+
+function TRepoHelperCVS.ExecCVSCmd(cmd, redirectTo: string): integer;
+begin
+  FLastCmdResult.Clear;
+  notifyLogging('cvs '+cmd);
+  cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd +' > '+redirectTo;
+  result := TProcesses.ExecBatch('cmd /c', cmd, FRootPath);
+  if result <> 0 then
+    notifyLogging('ERROR: '+IntToStr(result));
 end;
 
 function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
@@ -97,7 +148,7 @@ begin
   TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
 end;
 
-function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; output: TRepoHistory; useCache: boolean): integer;
+function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; out history: TRepoHistory; useCache: boolean): integer;
 var
   cmd, sdate, fileName: string;
 begin
@@ -117,6 +168,7 @@ begin
     result := ExecCVSCmd(cmd);
     FLastCmdResult.SaveToFile(fileName);
   end;
+  history := ParseHistory(fileName);
 end;
 
 function TRepoHelperCVS.getOnLogging: TProc<string>;
@@ -126,7 +178,7 @@ end;
 
 procedure TRepoHelperCVS.hndCommand(buff: string);
 begin
-  FLastCmdResult.Text := FLastCmdResult.Text + buff;
+  FLastCmdResult.WriteString(buff);
   if assigned(FOnLogging) then
     FOnLogging(buff);
 end;
@@ -250,6 +302,55 @@ begin
     FOnLogging(aMsg + #13#10);
 end;
 
+function TRepoHelperCVS.ParseHistory(fileName: string): TRepoHistory;
+var
+  sl: TStringList;
+  line: string;
+  item: TRepoHistoryItem;
+  tmp: TArray<string>;
+begin
+  sl := TStringList.Create;
+  sl.LoadFromFile(fileName);
+  result := TRepoHistory.Create;
+  for line in sl do
+  begin
+    if line.StartsWith('cvs') then
+      continue;
+//    M 2017-04-19 00:34 +0000 dc 1.7.88.1.8.2  whizaxe.CfgFile.pas        Whizaxe    == adsl-172-10-1-101.dsl.sndg02.sbcglobal.net
+//    T 2016-08-31 07:51 +0000 dc DCC32CFG   [versions_7_2:HEAD]
+    tmp := line.Split([' '], ExcludeEmpty);
+    if not (length(tmp) in [7, 10]) then
+      continue;
+    item := TRepoHistoryItem.Create;
+    if tmp[0] = 'A' then
+      item.operation := hoAdd
+    else if tmp[0] = 'M' then
+      item.operation := hoMerge
+    else if tmp[0] = 'R' then
+      item.operation := hoDel
+    else if tmp[0] = 'T' then
+      item.operation := hoTag
+    else
+      item.operation := hoCommit;
+
+    item.user := tmp[4];
+    item.dt := DateTimeStrEval('yyyy-mm-dd hh:nn', tmp[1] + ' ' + tmp[2]);
+    if item.operation = hoTag then
+    begin
+      item.filePath := tmp[5];
+      item.revisionOrBranch := StringReplace(tmp[6], ':', ' <- ', []);
+    end
+    else
+    begin
+      item.revisionOrBranch := tmp[5];
+      item.filePath := TPath.Combine(FRootPath, tmp[7] + '\' + tmp[6]);
+      item.host := tmp[9];
+    end;
+    Result.Add(item);
+  end;
+  sl.Free;
+end;
+
 procedure TRepoHelperCVS.setOnLogging(Value: TProc<string>);
 begin
   fOnLogging := value;
@@ -292,7 +393,16 @@ begin
   outputFile := item.getTempFileName;
   result := 0;
   if not (useCache and FileExists(outputFile)) then
-    result := ExecCmd(FDiffCmd, params, outputFile)
+    result := ExecBatch(FDiffCmd, params, outputFile)
+end;
+
+function TRepoHelperCVS.doAnnotateFile(item: TFileInfo; params, prefix: string; out outputFile: string; useCache: boolean): integer;
+begin
+  outputFile := item.getTempFileName(prefix);
+  params := trim('annotate '+ params) + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  result := 0;
+  if not (useCache and FileExists(outputFile)) then
+    result := ExecCVSCmd(params, outputFile);
 end;
 
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);

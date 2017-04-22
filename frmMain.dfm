@@ -12,6 +12,7 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
   OnShortCut = FormShortCut
@@ -38,11 +39,11 @@ object MainForm: TMainForm
         ExplicitWidth = 1034
         ExplicitHeight = 588
         inherited Splitter1: TSplitter
-          Height = 455
+          Height = 372
           ExplicitHeight = 439
         end
         inherited Splitter2: TSplitter
-          Top = 496
+          Top = 413
           Width = 1034
           ExplicitTop = 496
           ExplicitWidth = 976
@@ -58,19 +59,21 @@ object MainForm: TMainForm
           end
         end
         inherited log: TMemo
-          Top = 499
+          Top = 416
           Width = 1034
+          Height = 172
           Lines.Strings = ()
-          ExplicitTop = 499
+          ExplicitTop = 416
           ExplicitWidth = 1034
+          ExplicitHeight = 172
         end
         inherited dirTree: TVirtualStringTree
-          Height = 455
+          Height = 372
           ExplicitHeight = 455
         end
         inherited fileList: TVirtualStringTree
           Width = 831
-          Height = 455
+          Height = 372
           Header.Height = 18
           ExplicitWidth = 831
           ExplicitHeight = 455
@@ -134,23 +137,16 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
+        ExplicitTop = 2
       end
     end
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar

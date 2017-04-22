@@ -25,7 +25,7 @@ type
     branch: string;
     constructor Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
     property stateAsStr: string read getStateAsStr;
-    function getTempFileName: string;
+    function getTempFileName(const prefix: string = ''): string;
     function getFullPathWithoutRoot(ARoot: string): string;
   end;
 
@@ -114,10 +114,11 @@ begin
   result := FileStateStr[self.state];
 end;
 
-function TFileInfo.getTempFileName: string;
+function TFileInfo.getTempFileName(const prefix: string = ''): string;
 begin
   result := TPath.Combine(TPath.GetTempPath,
-    TPath.GetFileNameWithoutExtension(fileName)
+    prefix
+    + TPath.GetFileNameWithoutExtension(fileName)
     + '_'
     + self.revision
     + TPath.GetExtension(filename)

@@ -112,7 +112,7 @@ object ViewFilesBrowser: TViewFilesBrowser
     TabOrder = 3
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
-    TreeOptions.SelectionOptions = [toFullRowSelect]
+    TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
     Columns = <
       item
         Position = 0

@@ -3,8 +3,8 @@ object HistoryQueryForm: THistoryQueryForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'History'
-  ClientHeight = 154
-  ClientWidth = 468
+  ClientHeight = 146
+  ClientWidth = 457
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,13 +16,6 @@ object HistoryQueryForm: THistoryQueryForm
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object Label1: TLabel
-    Left = 24
-    Top = 24
-    Width = 49
-    Height = 13
-    Caption = 'From date'
-  end
   object Label2: TLabel
     Left = 288
     Top = 24
@@ -45,7 +38,8 @@ object HistoryQueryForm: THistoryQueryForm
     Date = 42847.000000000000000000
     Format = 'yyyy-MM-dd'
     Time = 42847.000000000000000000
-    TabOrder = 0
+    Enabled = False
+    TabOrder = 1
   end
   object edtBranch: TComboBoxEx
     Left = 288
@@ -56,7 +50,7 @@ object HistoryQueryForm: THistoryQueryForm
       item
         Caption = 'aaaaaaaa'
       end>
-    TabOrder = 1
+    TabOrder = 3
   end
   object edtUserName: TEdit
     Left = 144
@@ -71,16 +65,26 @@ object HistoryQueryForm: THistoryQueryForm
     Width = 75
     Height = 25
     Caption = 'OK'
+    Default = True
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 4
   end
-  object Button1: TButton
+  object btnCancel: TButton
     Left = 262
     Top = 96
     Width = 75
     Height = 25
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 5
+  end
+  object cbxUseDate: TCheckBox
+    Left = 24
+    Top = 23
+    Width = 97
+    Height = 17
+    Caption = 'From date'
+    TabOrder = 0
+    OnClick = cbxUseDateClick
   end
 end

@@ -4,7 +4,8 @@
 // - pokazywanie tylko ró¿nic przy porównaniu
 // + zewnêtrza edycja
 // - prosty annotate
-// - log i historia z filtrami na: branch/usera/od daty/modu³
+// + historia z filtrami na: branch/usera/od daty/modu³
+// - log
 // - graf
 // - dodawanie, usuwanie, commit, import
 // - tryb git
@@ -57,7 +58,6 @@ type
     toolbarIcons: TPngImageList;
     actDiff: TAction;
     actGraph: TAction;
-    repoActionsIcons: TPngImageList;
     actLog: TAction;
     actAnnotate: TAction;
     actAdd: TAction;
@@ -89,6 +89,7 @@ type
     procedure actHistoryExecute(Sender: TObject);
 
     function tryGetSelectedItem(out item: TFileInfo): boolean;
+    procedure actAnnotateExecute(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -137,7 +138,8 @@ uses
   whizaxe.processes,
   formManager,
   frmDiff,
-  frmHistoryQuery;
+  frmHistoryQuery,
+  frmHistory;
 
 var
   vRepo: TRepo;
@@ -161,6 +163,17 @@ begin
 
   item := FFileListHelper.SelectedItem;
   TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
+end;
+
+procedure TRepo.actAnnotateExecute(Sender: TObject);
+var
+  item: TFileInfo;
+  outputFileName: string;
+begin
+  if not tryGetSelectedItem(item) then
+    exit;
+  if FRepoHelper.annotateFile(item, '', outputFileName, not FShiftPressed) = 0 then
+    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+outputFileName + '" "', '', 1);
 end;
 
 procedure TRepo.actDiffExecute(Sender: TObject);
@@ -202,16 +215,16 @@ procedure TRepo.actHistoryExecute(Sender: TObject);
 var
   hist: TRepoHistory;
   params: THistoryParams;
+  histForm: THistoryForm;
 begin
-  hist := TRepoHistory.Create;
-
   if histDialog.Execute(params) then
   begin
-    FRepoHelper.getHistory(params.date, params.userName, params.branch, hist, not FShiftPressed);
-
+    if FRepoHelper.getHistory(params.date, params.userName, params.branch, hist, not FShiftPressed) <> 0 then
+      exit;
+    histForm := THistoryForm.Create(nil);
+    forms.Add(histForm, 'History :: '+params.AsString);
+    histForm.Execute(hist);
   end;
-
-  hist.Free;
 end;
 
 procedure TRepo.actRefreshExecute(Sender: TObject);

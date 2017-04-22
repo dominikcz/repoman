@@ -21,7 +21,8 @@ uses
   frmDiff.utils in 'Views\frmDiff.utils.pas',
   fraEditor in 'Views\fraEditor.pas' {FrameEditor: TFrame},
   dmSynHighlighters in 'dmSynHighlighters.pas' {SynHighlighters: TDataModule},
-  frmHistoryQuery in 'Views\frmHistoryQuery.pas' {HistoryQueryForm};
+  frmHistoryQuery in 'Views\frmHistoryQuery.pas' {HistoryQueryForm},
+  frmHistory in 'Views\frmHistory.pas' {HistoryForm};
 
 {$R *.res}
 
