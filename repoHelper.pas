@@ -30,9 +30,8 @@ type
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
-    function getUpdateCmd(item: TFileInfo): string;
-    function diffFile(item: TFileInfo; out outputFile: string): integer;
-    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory): integer;
+    function diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
+    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory; useCache: boolean): integer;
     function getOnLogging: TProc<string>;
     procedure setOnLogging(Value: TProc<string>);
     property OnLogging: TProc<string> read getOnLogging write setOnLogging;

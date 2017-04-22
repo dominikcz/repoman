@@ -1,5 +1,7 @@
 //TODO:
 // + porównanie plików
+// - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
+// - pokazywanie tylko ró¿nic przy porównaniu
 // + zewnêtrza edycja
 // - prosty annotate
 // - log i historia z filtrami na: branch/usera/od daty/modu³
@@ -70,6 +72,8 @@ type
     add1: TMenuItem;
     remove1: TMenuItem;
     edit1: TMenuItem;
+    actHistory: TAction;
+    history1: TMenuItem;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -81,6 +85,10 @@ type
     procedure actDiffExecute(Sender: TObject);
     procedure actRemoveUpdate(Sender: TObject);
     procedure actEditExecute(Sender: TObject);
+    procedure alRepoActionsExecute(Action: TBasicAction; var Handled: Boolean);
+    procedure actHistoryExecute(Sender: TObject);
+
+    function tryGetSelectedItem(out item: TFileInfo): boolean;
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -92,6 +100,8 @@ type
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
     FConfig: TRepoManCfg;
+    FShiftPressed: Boolean;
+    function isShiftPressed: boolean;
     procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
     procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -121,18 +131,20 @@ implementation
 
 uses
   System.IOUtils,
+  Windows,
   frmMain,
   whizaxe.vclHelper,
   whizaxe.processes,
   formManager,
   frmDiff,
-  DateUtils;
+  frmHistoryQuery;
 
 var
   vRepo: TRepo;
 
 const
   cIgnoreListFileName = 'ignorelist.repoman'; // DONT LOCALIZE
+  cUsingCacheMsg = '*** %s: Using cache if available. Press Shift to bypass cache ***'#13#10;
 
 function Repo: TRepo;
 begin
@@ -158,12 +170,9 @@ var
   outputFileName: string;
   diffForm: TDiffForm;
 begin
-  item := FFileListHelper.SelectedItem;
-  if not Assigned(item) then
+  if not tryGetSelectedItem(item) then
     exit;
-  cmd := FRepoHelper.getUpdateCmd(item);
-  MainForm.ViewFilesBrowser1.log.Lines.Add(cmd);
-  if FRepoHelper.diffFile(item, outputFileName) = 0 then
+  if FRepoHelper.diffFile(item, outputFileName, not FShiftPressed) = 0 then
   begin
     if FConfig.UseExternalDiff then
       TProcesses.ExecBatch(FConfig.ExternalDiffPath, '"'+outputFileName + '" "' + item.fullPath+'"', '', 1)
@@ -181,16 +190,27 @@ end;
 procedure TRepo.actEditExecute(Sender: TObject);
 var
   item: TFileInfo;
-  hist: TRepoHistory;
 begin
-  item := FFileListHelper.SelectedItem;
-  if not Assigned(item) then
+  if not tryGetSelectedItem(item) then
     exit;
 
+  if FConfig.ExternalEditor <> '' then
+    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
+end;
+
+procedure TRepo.actHistoryExecute(Sender: TObject);
+var
+  hist: TRepoHistory;
+  params: THistoryParams;
+begin
   hist := TRepoHistory.Create;
-  FRepoHelper.getHistory(IncDay(now, -7), 'dc', '', hist);
-//  if FConfig.ExternalEditor <> '' then
-//    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
+
+  if histDialog.Execute(params) then
+  begin
+    FRepoHelper.getHistory(params.date, params.userName, params.branch, hist, not FShiftPressed);
+
+  end;
+
   hist.Free;
 end;
 
@@ -216,12 +236,22 @@ begin
   TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
 end;
 
+procedure TRepo.alRepoActionsExecute(Action: TBasicAction; var Handled: Boolean);
+begin
+  FShiftPressed := isShiftPressed;
+  if not FShiftPressed then
+    MainForm.ViewFilesBrowser1.AddToLog(Format(cUsingCacheMsg, [TAction(Action).Caption]));
+end;
+
 procedure TRepo.CloseAllChildForms;
 begin
   forms.Clear;
 end;
 
 procedure TRepo.DataModuleCreate(Sender: TObject);
+var
+  lAction: TContainedAction;
+  lShortCut: TShortCut;
 begin
   FConfig := TRepoManCfg.Create;
 
@@ -270,6 +300,14 @@ begin
   FFileListHelper.OnFiltered := hndVstFiltered;
 
   FCmdResult := TStringList.Create;
+
+  for lAction in alRepoActions do
+    if lAction.ShortCut <> 0 then
+    begin
+      lShortCut := lAction.ShortCut + scShift;
+      lAction.SecondaryShortCuts.Add(ShortCutToText(lShortCut))
+    end;
+
 end;
 
 procedure TRepo.DataModuleDestroy(Sender: TObject);
@@ -292,6 +330,12 @@ var
 begin
   item := FFileListHelper.SelectedItem;
   TAction(Sender).Enabled := (item <> nil) and (item.state <> fsUnversioned);
+end;
+
+function TRepo.tryGetSelectedItem(out item: TFileInfo): boolean;
+begin
+  item := FFileListHelper.SelectedItem;
+  result := Assigned(item);
 end;
 
 procedure TRepo.hndChangeRootDir(Sender: TObject);
@@ -445,6 +489,14 @@ end;
 procedure TRepo.refreshView(Sender: TObject);
 begin
   RefreshCurrentListing;
+end;
+
+function TRepo.isShiftPressed: boolean;
+var
+  virtKey: SmallInt;
+begin
+  virtKey := GetKeyState(VK_LSHIFT);
+  result := (virtKey and $8000) <> 0;
 end;
 
 function TRepo._FilterModelByPath(path: string): boolean;

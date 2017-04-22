@@ -6,6 +6,7 @@ object Repo: TRepo
   Width = 441
   object alRepoActions: TActionList
     Images = repoActionsIcons
+    OnExecute = alRepoActionsExecute
     Left = 136
     Top = 88
     object actDiff: TAction
@@ -55,6 +56,11 @@ object Repo: TRepo
       ShortCut = 16397
       OnExecute = actEditExecute
       OnUpdate = SingleFileActionUpdate
+    end
+    object actHistory: TAction
+      Category = 'repo'
+      Caption = 'history'
+      OnExecute = actHistoryExecute
     end
   end
   object alViewActions: TActionList
@@ -380,6 +386,10 @@ object Repo: TRepo
             ShortCut = 16397
           end
           item
+            Action = actHistory
+            Caption = '&history'
+          end
+          item
             Caption = '-'
           end
           item
@@ -654,6 +664,9 @@ object Repo: TRepo
     end
     object edit1: TMenuItem
       Action = actEdit
+    end
+    object history1: TMenuItem
+      Action = actHistory
     end
     object N1: TMenuItem
       Caption = '-'

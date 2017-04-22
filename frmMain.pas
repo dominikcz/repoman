@@ -17,6 +17,7 @@ type
     ActionToolBar1: TActionToolBar;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
   private
     { Private declarations }
   public
@@ -44,6 +45,11 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   repo.actRefreshExecute(sender);
+end;
+
+procedure TMainForm.FormShortCut(var Msg: TWMKey; var Handled: Boolean);
+begin
+  handled := Repo.alRepoActions.IsShortCut(Msg);
 end;
 
 end.

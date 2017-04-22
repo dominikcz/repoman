@@ -20,7 +20,8 @@ uses
   HashUnit in '3rdparty\textdiff\TextDiff\HashUnit.pas',
   frmDiff.utils in 'Views\frmDiff.utils.pas',
   fraEditor in 'Views\fraEditor.pas' {FrameEditor: TFrame},
-  dmSynHighlighters in 'dmSynHighlighters.pas' {SynHighlighters: TDataModule};
+  dmSynHighlighters in 'dmSynHighlighters.pas' {SynHighlighters: TDataModule},
+  frmHistoryQuery in 'Views\frmHistoryQuery.pas' {HistoryQueryForm};
 
 {$R *.res}
 

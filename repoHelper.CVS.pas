@@ -38,16 +38,16 @@ type
     FDiffCmd: string;
     FOnLogging: TProc<string>;
     FLastCmdResult: TStringList;
+    procedure notifyLogging(aMsg: string);
     function ExecCmd(cmd, params, redirectTo: string): integer;
     function ExecCVSCmd(cmd: string): integer;
-    procedure hndCommand(buff: PAnsiChar);
+    procedure hndCommand(buff: string);
   public
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
-    function getUpdateCmd(item: TFileInfo): string;
-    function diffFile(item: TFileInfo; out outputFile: string): integer;
-    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory): integer;
+    function diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
+    function getHistory(sinceDate: TDate; forUser: string; inBranch: string; output: TRepoHistory; useCache: boolean): integer;
     function getOnLogging: TProc<string>;
     procedure setOnLogging(Value: TProc<string>);
 
@@ -82,34 +82,41 @@ end;
 
 function TRepoHelperCVS.ExecCmd(cmd, params, redirectTo: string): integer;
 begin
+  FLastCmdResult.Clear;
+  notifyLogging(cmd + ' ' + params);
   params := params + ' > '+redirectTo;
-  {$IFNDEF FAKE_CVS}
+//  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
   result := TProcesses.ExecBatch(cmd, params, FRootPath);
-  {$ELSE}
-  result := 0;
-  {$ENDIF}
 end;
 
 function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
 begin
   FLastCmdResult.Clear;
-  if Assigned(FOnLogging) then
-    FOnLogging('cvs ' + cmd + #13#10);
-  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
+  notifyLogging('cvs ' + cmd);
+//  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
   TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
 end;
 
-function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; output: TRepoHistory): integer;
+function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; output: TRepoHistory; useCache: boolean): integer;
 var
-  cmd: string;
+  cmd, sdate, fileName: string;
 begin
   cmd := 'history -x AMRT';
+  sdate := '';
   if sinceDate <> 0 then
-    cmd := format(cmd + ' -D "%s"', [TMcStr.DateTimeWithMsToStr(sinceDate, dtmISODate)]);
+  begin
+    sdate := TMcStr.DateTimeWithMsToStr(sinceDate, dtmISODate);
+    cmd := format(cmd + ' -D "%s"', [sdate]);
+  end;
   if forUser <> '' then
     cmd := cmd + ' -u '+forUser;
-  result := ExecCVSCmd(cmd);
-
+  result := 0;
+  fileName := TPath.Combine(TPath.GetTempPath, ''.Join('_', ['history', sdate, forUser, inBranch])+'.txt');
+  if not (useCache and FileExists(fileName)) then
+  begin
+    result := ExecCVSCmd(cmd);
+    FLastCmdResult.SaveToFile(fileName);
+  end;
 end;
 
 function TRepoHelperCVS.getOnLogging: TProc<string>;
@@ -117,13 +124,7 @@ begin
   result := fOnLogging;
 end;
 
-function TRepoHelperCVS.getUpdateCmd(item: TFileInfo): string;
-begin
-  //depreciated....
-  Result := format('cvs.exe update -d %s -p -r %s -- %s', [FCVSROOT, item.revision, item.getFullPathWithoutRoot(FRootPath)]);
-end;
-
-procedure TRepoHelperCVS.hndCommand(buff: PAnsiChar);
+procedure TRepoHelperCVS.hndCommand(buff: string);
 begin
   FLastCmdResult.Text := FLastCmdResult.Text + buff;
   if assigned(FOnLogging) then
@@ -243,6 +244,12 @@ begin
   sl.Free;
 end;
 
+procedure TRepoHelperCVS.notifyLogging(aMsg: string);
+begin
+  if Assigned(FOnLogging) then
+    FOnLogging(aMsg + #13#10);
+end;
+
 procedure TRepoHelperCVS.setOnLogging(Value: TProc<string>);
 begin
   fOnLogging := value;
@@ -277,15 +284,15 @@ begin
   end;
 end;
 
-function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string): integer;
+function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
 var
   params: string;
 begin
   params := item.revision + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
   outputFile := item.getTempFileName;
   result := 0;
-  if not FileExists(outputFile) then
-    result := ExecCmd(FDiffCmd, params, outputFile);
+  if not (useCache and FileExists(outputFile)) then
+    result := ExecCmd(FDiffCmd, params, outputFile)
 end;
 
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);

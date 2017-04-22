@@ -91,7 +91,7 @@ procedure TFrameEditor.codeEditorSpecialLineColors(Sender: TObject; Line: Intege
 var
   kind: TChangeKind;
 begin
-  if Assigned(Diff) then
+  if Assigned(Diff) and (Diff.Count > 0) then
   begin
     kind := Diff.Compares[Line - 1].Kind;
     if kind = ckNone then

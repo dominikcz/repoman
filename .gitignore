@@ -9,3 +9,6 @@ __history
 *.dcu
 3rdparty/WinCvsSrc2_1_1
 .gitignore
+3rdparty/dev/
+*.bak
+3rdparty*

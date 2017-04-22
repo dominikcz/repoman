@@ -14,6 +14,7 @@ object MainForm: TMainForm
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShortCut = FormShortCut
   PixelsPerInch = 96
   TextHeight = 13
   object pages: TPageControl
@@ -24,7 +25,6 @@ object MainForm: TMainForm
     ActivePage = tabRepoView
     Align = alClient
     TabOrder = 0
-    ExplicitTop = -6
     object tabRepoView: TTabSheet
       Caption = 'Repo'
       inline ViewFilesBrowser1: TViewFilesBrowser
@@ -72,8 +72,6 @@ object MainForm: TMainForm
           Width = 831
           Height = 455
           Header.Height = 18
-          ExplicitLeft = 203
-          ExplicitTop = 41
           ExplicitWidth = 831
           ExplicitHeight = 455
           Columns = <
@@ -136,16 +134,23 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
-        ExplicitTop = 2
       end
     end
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar
