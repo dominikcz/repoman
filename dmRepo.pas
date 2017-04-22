@@ -3,7 +3,7 @@
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
 // - pokazywanie tylko ró¿nic przy porównaniu
 // + zewnêtrza edycja
-// - prosty annotate
+// + prosty annotate
 // + historia z filtrami na: branch/usera/od daty/modu³
 // - log
 // - graf

@@ -69,14 +69,16 @@ object MainForm: TMainForm
         end
         inherited dirTree: TVirtualStringTree
           Height = 372
-          ExplicitHeight = 455
+          ExplicitHeight = 372
         end
         inherited fileList: TVirtualStringTree
           Width = 831
           Height = 372
           Header.Height = 18
+          ExplicitLeft = 203
+          ExplicitTop = 41
           ExplicitWidth = 831
-          ExplicitHeight = 455
+          ExplicitHeight = 372
           Columns = <
             item
               Position = 0

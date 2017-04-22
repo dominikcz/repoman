@@ -35,7 +35,6 @@ type
     FEntries: TCVSEntries;
     FRootPath: string;
     FCVSROOT: string;
-    FDiffCmd: string;
     FOnLogging: TProc<string>;
     FLastCmdResult: TStringStream;
     procedure notifyLogging(aMsg: string);
@@ -110,7 +109,6 @@ end;
 constructor TRepoHelperCVS.Create;
 begin
   FEntries := TCVSEntries.Create;
-  FDiffCmd := ExtractFilePath(ParamStr(0))+'helpers\cvs\diff.cmd';
   FLastCmdResult := TStringStream.Create;
 end;
 
@@ -126,7 +124,6 @@ begin
   FLastCmdResult.Clear;
   notifyLogging(cmd + ' ' + params);
   params := params + ' > '+redirectTo;
-//  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
   result := TProcesses.ExecBatch(cmd, params, FRootPath, 1, true);
 end;
 
@@ -144,7 +141,7 @@ function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
 begin
   FLastCmdResult.Clear;
   notifyLogging('cvs ' + cmd);
-//  cmd := format('-d "%s" '+cmd, [FCVSROOT]);
+  cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd;
   TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
 end;
 
@@ -389,11 +386,11 @@ function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string; useCac
 var
   params: string;
 begin
-  params := item.revision + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := 'update -p -r '+item.revision + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
   outputFile := item.getTempFileName;
   result := 0;
   if not (useCache and FileExists(outputFile)) then
-    result := ExecBatch(FDiffCmd, params, outputFile)
+    result := ExecCVSCmd(params, outputFile)
 end;
 
 function TRepoHelperCVS.doAnnotateFile(item: TFileInfo; params, prefix: string; out outputFile: string; useCache: boolean): integer;

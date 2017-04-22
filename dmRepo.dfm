@@ -713,6 +713,7 @@ object Repo: TRepo
     Bitmap = {}
   end
   object popupRepoActions: TPopupActionBar
+    Images = repoIcons
     Left = 224
     Top = 144
     object diff1: TMenuItem
