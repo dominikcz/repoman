@@ -28,15 +28,16 @@ object FrameEditor: TFrameEditor
       OnEnter = codeEditorEnter
       OnExit = codeEditorExit
       BorderStyle = bsNone
+      Gutter.AutoSize = True
       Gutter.Font.Charset = DEFAULT_CHARSET
-      Gutter.Font.Color = clWindowText
+      Gutter.Font.Color = clGray
       Gutter.Font.Height = -11
       Gutter.Font.Name = 'Courier New'
       Gutter.Font.Style = []
+      Gutter.ShowLineNumbers = True
       Options = [eoAltSetsColumnMode, eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoKeepCaretX, eoScrollPastEol, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent, eoTabsToSpaces]
       RightEdge = 120
       OnGutterGetText = codeEditorGutterGetText
-      OnGutterPaint = codeEditorGutterPaint
       OnSpecialLineColors = codeEditorSpecialLineColors
       FontSmoothing = fsmClearType
     end

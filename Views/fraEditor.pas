@@ -14,19 +14,22 @@ type
     codeEditor: TSynEdit;
     SynEditSearch1: TSynEditSearch;
     procedure codeEditorGutterGetText(Sender: TObject; aLine: Integer; var aText: string);
-    procedure codeEditorGutterPaint(Sender: TObject; aLine, X, Y: Integer);
     procedure codeEditorEnter(Sender: TObject);
     procedure codeEditorExit(Sender: TObject);
     procedure codeEditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG, BG: TColor);
   private
     FDiff: TDiff;
     FisCurrent: boolean;
+    FFileName: string;
+    FisUpdating: boolean;
     function GetTopVisibleLine: Integer;
     procedure SetTopVisibleLine(const Value: Integer);
     { Private declarations }
   public
     { Public declarations }
     procedure LoadFile(AFileName: string);
+    procedure Reload;
+    procedure Save;
     procedure ScrollTo(Y, max: Integer);
     procedure ScrollToLine(Y: Integer);
     procedure GetSource(lines: TStrings);
@@ -35,6 +38,7 @@ type
     property TopVisibleLine: Integer read GetTopVisibleLine write SetTopVisibleLine;
     property Diff: TDiff read FDiff write FDiff;
     property isCurrent: boolean read FisCurrent write FisCurrent;
+    property isUpdating: boolean read FisUpdating write FisUpdating;
   end;
 
 implementation
@@ -45,7 +49,8 @@ uses
   whizaxe.Math,
   HashUnit,
   frmDiff.utils,
-  dmSynHighlighters;
+  dmSynHighlighters,
+  whizaxe.common;
 
 procedure TFrameEditor.codeEditorEnter(Sender: TObject);
 begin
@@ -58,48 +63,78 @@ begin
 end;
 
 procedure TFrameEditor.codeEditorGutterGetText(Sender: TObject; aLine: Integer; var aText: string);
+var
+  idx: Integer;
 begin
+  if isUpdating then
+    exit;
   if Assigned(Diff) then
   begin
+//    idx := integer(codeEditor.lines.Objects[aLine -1]);
+    idx := aLine -1;
     aText := '';
-    case Diff.Compares[aLine].Kind of
-      ckNone, ckModify:
-        aText := IntToStr(aLine);
-      ckAdd:
-        if isCurrent then
-          aText := IntToStr(aLine);
-      ckDelete:
-        if not isCurrent then
-          aText := IntToStr(aLine);
-    end;
+    if idx < 0 then
+      exit;
+    
+    if isCurrent then
+      case Diff.Compares[idx].Kind of
+        ckNone, ckModify:
+          aText := IntToStr(Diff.Compares[idx].oldIndex2 + 1);
+        ckAdd:
+          aText := IntToStr(Diff.Compares[idx].oldIndex2 + 1);
+      end
+    else
+      case Diff.Compares[idx].Kind of
+        ckNone, ckModify:
+          aText := IntToStr(Diff.Compares[idx].oldIndex1 + 1);
+        ckDelete:
+          aText := IntToStr(Diff.Compares[idx].oldIndex1 + 1);
+      end
   end
   else
     aText := IntToStr(aLine);
-end;
-
-procedure TFrameEditor.codeEditorGutterPaint(Sender: TObject; aLine, X, Y: Integer);
-var
-  newWidth: Integer;
-begin
-  newWidth := trunc(codeEditor.CharWidth * (Log10(codeEditor.lines.Count) + 1));
-  if codeEditor.Gutter.Width <> newWidth then
-    codeEditor.Gutter.Width := newWidth;
 end;
 
 procedure TFrameEditor.codeEditorSpecialLineColors(Sender: TObject; Line: Integer; var Special: Boolean; var FG,
   BG: TColor);
 var
   kind: TChangeKind;
+  idx: Integer;
 begin
+  if isUpdating then
+    exit;
   if Assigned(Diff) and (Diff.Count > 0) then
   begin
-    kind := Diff.Compares[Line - 1].Kind;
+//    idx := integer(codeEditor.Lines.Objects[Line - 1]);
+    idx := Line - 1;
+    if idx < 0 then
+      exit;
+    kind := Diff.Compares[idx].Kind;
     if kind = ckNone then
       exit;
     Special := true;
     case kind of
       ckModify:
         BG := modClr;
+//        len1 := length(s);
+//        len2 := length(ss);
+//        //nb: with v. rapid line changes it's possible for Execute to return false
+//        if not Diff1.Execute(pchar(s),pchar(ss),len1,len2) then exit;
+//        Handled := true;
+//        canvas.FillRect(rec);
+//        lastKind := ckNone;
+//        s := lines[LineNo];
+//        ss := '';
+//        sss := '';
+//        for i := 0 to Diff1.Count-1 do
+//          case Diff1[i].Kind of
+//            ckNone,ckDelete,ckModify:
+//              begin
+//                AddStrClr(ss,sss,s[Diff1[i].oldIndex1+1], Diff1[i].Kind, lastKind);
+//                lastKind := Diff1[i].Kind;
+//              end;
+//          end;
+//        MarkupTextOut(canvas, rec, TextLeft,rec.Top,ss,sss,[modClr, MakeDarker(modClr)]);
       ckAdd:
         if isCurrent then BG := addClr else BG := grayColor;
       ckDelete:
@@ -162,9 +197,21 @@ procedure TFrameEditor.LoadFile(AFileName: string);
 begin
   if not FileExists(AFileName) then
     exit;
-  codeEditor.lines.LoadFromFile(AFileName);
-  pnlCaption.caption := '  ' + AFileName;
-  codeEditor.Highlighter := SynHighlighters.GetHighlighterFromFileExt(ExtractFileExt(AFileName));
+  FFileName := AFileName;
+  codeEditor.lines.LoadFromFile(FFileName);
+  pnlCaption.caption := '  ' + FFileName;
+  codeEditor.Highlighter := SynHighlighters.GetHighlighterFromFileExt(ExtractFileExt(FFileName));
+end;
+
+procedure TFrameEditor.Reload;
+begin
+  codeEditor.Lines.LoadFromFile(FFileName);
+end;
+
+procedure TFrameEditor.Save;
+begin
+  SafeRenameFile(FFileName, '.bak');
+  codeEditor.Lines.SaveToFile(FFileName);
 end;
 
 procedure TFrameEditor.ScrollTo(Y, max: Integer);

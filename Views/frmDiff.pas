@@ -45,6 +45,7 @@ type
     FrameEditor1: TFrameEditor;
     FrameEditor2: TFrameEditor;
     Splitter2: TSplitter;
+    actShowDiffsOnly: TAction;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -53,12 +54,17 @@ type
     procedure pbScrollPosMarkerMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure actSaveExecute(Sender: TObject);
     procedure pnlNavigationResize(Sender: TObject);
+    procedure actShowDiffsOnlyExecute(Sender: TObject);
+    procedure actSaveUpdate(Sender: TObject);
+    procedure actRefreshExecute(Sender: TObject);
   private
     { Private declarations }
     FDiff: TDiff;
     FCELines1, FCELines2: TStrings;
     fStatusbarStr: string;
     pbDiffMarkerBmp: TBitmap;
+    FIsSyncing: boolean;
+    fShowDiffsOnly: boolean;
 
     procedure SyncScroll(Sender: TObject; ScrollBar: TScrollBarKind);
     procedure scrollFromNavigator(y: integer);
@@ -66,6 +72,7 @@ type
     procedure Compare;
     procedure DisplayDiffs;
     procedure UpdateDiffMarkerBmp;
+    function NoModAround(idx, range: integer): boolean;
   public
     { Public declarations }
     options: TDiffOptions;
@@ -81,9 +88,33 @@ uses
   SynEdit,
   frmDiff.utils;
 
+procedure TDiffForm.actRefreshExecute(Sender: TObject);
+begin
+  FrameEditor1.isUpdating := true;
+  FrameEditor2.isUpdating := true;
+
+  FrameEditor1.Reload;
+  FrameEditor2.Reload;
+  Compare;
+
+  FrameEditor1.isUpdating := false;
+  FrameEditor2.isUpdating := false;
+end;
+
 procedure TDiffForm.actSaveExecute(Sender: TObject);
 begin
   FrameEditor1.codeEditor.Lines.SaveToFile(ExtractFilePath(paramStr(0)) + 'code1.txt');
+end;
+
+procedure TDiffForm.actSaveUpdate(Sender: TObject);
+begin
+  actSave.Enabled := not fShowDiffsOnly;
+end;
+
+procedure TDiffForm.actShowDiffsOnlyExecute(Sender: TObject);
+begin
+  fShowDiffsOnly := actShowDiffsOnly.Checked;
+  actRefreshExecute(Sender);
 end;
 
 procedure TDiffForm.Compare;
@@ -94,21 +125,14 @@ begin
   if (FCELines1.Count = 0) or (FCELines2.Count = 0) then
     exit;
 
-  // THIS PROCEDURE IS WHERE ALL THE HEAVY LIFTING (COMPARING) HAPPENS ...
   screen.Cursor := crHourglass;
   HashList1 := TList.create;
   HashList2 := TList.create;
   try
-    // Create the hash lists used to compare line differences.
-    // nb - there is a small possibility of different lines hashing to the
-    // same value. However the probability of an invalid match occuring
-    // in proximity to its invalid partner is remote. Ideally, these hash
-    // collisions should be managed by ? incrementing the hash value.
     HashList1.capacity := FCELines1.Count;
     HashList2.capacity := FCELines2.Count;
     FrameEditor1.GetHashedSource(HashList1, options.ignoreCase, options.ignoreBlanks);
     FrameEditor2.GetHashedSource(HashList2, options.ignoreCase, options.ignoreBlanks);
-    // CALCULATE THE DIFFS HERE ...
     FDiff.Execute(PInteger(HashList1.List), PInteger(HashList2.List), HashList1.Count, HashList2.Count);
     DisplayDiffs;
     ActiveControl := FrameEditor1.codeEditor;
@@ -124,8 +148,6 @@ var
   i: Integer;
   lines1, lines2: TStringList;
 begin
-  // THIS IS WHERE THE TDIFF RESULT IS CONVERTED INTO COLOR HIGHLIGHTING ...
-
   lines1 := TStringList.Create;
   lines2 := TStringList.Create;
   FCELines1.BeginUpdate;
@@ -142,24 +164,24 @@ begin
           case Kind of
             ckNone:
               begin
-                // if mnuShowDiffsOnly.Checked  then continue;
-                FCELines1.Add(lines1[oldIndex1]);
-                FCELines2.Add(lines2[oldIndex2]);
+                if fShowDiffsOnly and NoModAround(i, 3) then continue;
+                FCELines1.AddObject(lines1[oldIndex1], TObject(oldIndex1));
+                FCELines2.AddObject(lines2[oldIndex2], TObject(oldIndex2));
               end;
             ckAdd:
               begin
-                FCELines1.Add('');
-                FCELines2.Add(lines2[oldIndex2]);
+                FCELines1.AddObject('', TObject(-1));
+                FCELines2.AddObject(lines2[oldIndex2], TObject(oldIndex2));
               end;
             ckDelete:
               begin
-                FCELines1.Add(lines1[oldIndex1]);
-                FCELines2.Add('');
+                FCELines1.AddObject(lines1[oldIndex1], TObject(oldIndex1));
+                FCELines2.AddObject('', TObject(-1));
               end;
             ckModify:
               begin
-                FCELines1.Add(lines1[oldIndex1]);
-                FCELines2.Add(lines2[oldIndex2]);
+                FCELines1.AddObject(lines1[oldIndex1], TObject(oldIndex1));
+                FCELines2.AddObject(lines2[oldIndex2], TObject(oldIndex2));
               end;
           end;
 
@@ -182,6 +204,8 @@ end;
 
 procedure TDiffForm.FormCreate(Sender: TObject);
 begin
+  fShowDiffsOnly := false;
+
   addClr := defaultAddClr;
   modClr := defaultModClr;
   delClr := defaultDelClr;
@@ -228,6 +252,22 @@ begin
   Compare;
 end;
 
+function TDiffForm.NoModAround(idx, range: integer): boolean;
+var
+  i, max: Integer;
+begin
+  result := true;
+  max := FDiff.Count - 1;
+  for i := idx - range to idx + range do
+  begin
+    if (i < 0) or (i = idx) or (i>max) then
+      continue;
+    if FDiff.Compares[i].Kind <> ckNone then
+      exit(false);
+  end;
+end;
+
+
 procedure TDiffForm.pbScrollPosMarkerMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 begin
@@ -243,8 +283,8 @@ end;
 procedure TDiffForm.pbScrollPosMarkerPaint(Sender: TObject);
 var
   yPos1, yPos2: Integer;
+  bm: TBitmap;
 begin
-  // paint a marker indicating the vertical scroll position relative to change map
   if FCELines1.Count = 0 then
     exit;
 
@@ -265,8 +305,22 @@ begin
       inc(yPos2)
     else
       yPos2 := clientHeight;
+
+    // pó³przezroczysty wype³niony prostok¹t z wyraŸn¹ ramk¹
+    Canvas.Pen.Color := clNavy;
     Canvas.Brush.Style := bsClear;
+
+    bm := TBitmap.Create;
+    bm.SetSize(ClientWidth, yPos2 - yPos1);
+    bm.Canvas.Brush.Color := $00FFB8A4;
+    bm.Canvas.Pen.Style := psSolid;
+    // bez ramki...
+    bm.Canvas.FillRect(Rect(0, 0, bm.Width, bm.Height));
+    // rysujemy wype³niony prostok¹t
+    Canvas.Draw(0, yPos1, bm, 50);
+    // i ramka
     Canvas.Rectangle(0, yPos1, ClientWidth, yPos2);
+    bm.Free;
   end;
 end;
 
@@ -281,22 +335,28 @@ begin
   SyncScroll(FrameEditor1.codeEditor, sbVertical);
 end;
 
-// Synchronise scrolling of both CodeEdits (once files are compared)...
-var
-  IsSyncing: boolean;
-
 procedure TDiffForm.SyncScroll(Sender: TObject; ScrollBar: TScrollBarKind);
 begin
-  if IsSyncing or not(Sender is TSynEdit) then
+  if FIsSyncing or not(Sender is TSynEdit) then
     exit;
-  IsSyncing := true; // stops recursion
+  FIsSyncing := true; // stops recursion
   try
-    if Sender = FrameEditor1.codeEditor then
-      FrameEditor2.TopVisibleLine := FrameEditor1.TopVisibleLine
-    else
-      FrameEditor1.TopVisibleLine := FrameEditor2.TopVisibleLine;
+    case ScrollBar of
+      sbHorizontal: begin
+        if Sender = FrameEditor1.codeEditor then
+          FrameEditor2.codeEditor.LeftChar := FrameEditor1.codeEditor.LeftChar
+        else
+          FrameEditor1.codeEditor.LeftChar := FrameEditor2.codeEditor.LeftChar;
+      end;
+      sbVertical: begin
+        if Sender = FrameEditor1.codeEditor then
+          FrameEditor2.TopVisibleLine := FrameEditor1.TopVisibleLine
+        else
+          FrameEditor1.TopVisibleLine := FrameEditor2.TopVisibleLine;
+      end;
+    end;
   finally
-    IsSyncing := false;
+    FIsSyncing := false;
   end;
   pbScrollPosMarkerPaint(self);
 end;
@@ -328,7 +388,7 @@ begin
     Canvas.Brush.Color := pbScrollPosMarker.Color;
     Canvas.Brush.Style := bsSolid;
 
-    //t³o
+    // t³o
     Canvas.FillRect(Rect(0, 0, Width, Height));
 
     x1_1 := 2*margin;
