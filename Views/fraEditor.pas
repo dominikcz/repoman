@@ -22,6 +22,7 @@ type
     FisCurrent: boolean;
     FFileName: string;
     FisUpdating: boolean;
+    FShowDiffsOnly: boolean;
     function GetTopVisibleLine: Integer;
     procedure SetTopVisibleLine(const Value: Integer);
     { Private declarations }
@@ -39,6 +40,7 @@ type
     property Diff: TDiff read FDiff write FDiff;
     property isCurrent: boolean read FisCurrent write FisCurrent;
     property isUpdating: boolean read FisUpdating write FisUpdating;
+    property ShowDiffsOnly: boolean read FShowDiffsOnly write FShowDiffsOnly;
   end;
 
 implementation
@@ -70,12 +72,14 @@ begin
     exit;
   if Assigned(Diff) then
   begin
-//    idx := integer(codeEditor.lines.Objects[aLine -1]);
-    idx := aLine -1;
+    if fShowDiffsOnly then
+      idx := integer(codeEditor.lines.Objects[aLine -1])
+    else
+      idx := aLine -1;
     aText := '';
     if idx < 0 then
       exit;
-    
+
     if isCurrent then
       case Diff.Compares[idx].Kind of
         ckNone, ckModify:

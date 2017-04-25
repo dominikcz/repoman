@@ -95,6 +95,8 @@ begin
 
   FrameEditor1.Reload;
   FrameEditor2.Reload;
+  FrameEditor1.ShowDiffsOnly := self.fShowDiffsOnly;
+  FrameEditor2.ShowDiffsOnly := self.fShowDiffsOnly;
   Compare;
 
   FrameEditor1.isUpdating := false;

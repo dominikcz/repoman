@@ -1,7 +1,8 @@
 //TODO:
 // + porównanie plików
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
-// - pokazywanie tylko ró¿nic przy porównaniu
+// - pokazywanie ró¿nic na poziomie s³ów/znaków
+// ~ pokazywanie tylko ró¿nic przy porównaniu
 // + zewnêtrza edycja
 // + prosty annotate
 // + historia z filtrami na: branch/usera/od daty/modu³
