@@ -22,6 +22,7 @@ object Repo: TRepo
       Caption = 'graph'
       ImageIndex = 17
       ShortCut = 16455
+      OnExecute = actGraphExecute
       OnUpdate = SingleFileActionUpdate
     end
     object actLog: TAction

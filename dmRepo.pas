@@ -1,14 +1,10 @@
 //TODO:
-// + porównanie plików
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
-// - pokazywanie ró¿nic na poziomie s³ów/znaków
+// - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter?)
 // ~ pokazywanie tylko ró¿nic przy porównaniu
-// + zewnêtrza edycja
-// + prosty annotate
-// + historia z filtrami na: branch/usera/od daty/modu³
 // - log
 // - graf
-// - dodawanie, usuwanie, commit, import
+// - dodawanie, usuwanie, update, commit, import
 // - tryb git
 // - code review
 // - operacje asychroniczne na repo
@@ -17,6 +13,12 @@
 // - sprawdzanie pisowni
 // - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
 // - BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
+
+// DONE:
+// + porównanie plików
+// + zewnêtrzna edycja
+// + prosty annotate
+// + historia z filtrami na: branch/usera/od daty/modu³
 
 
 unit dmRepo;
@@ -91,6 +93,7 @@ type
 
     function tryGetSelectedItem(out item: TFileInfo): boolean;
     procedure actAnnotateExecute(Sender: TObject);
+    procedure actGraphExecute(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -140,7 +143,8 @@ uses
   formManager,
   frmDiff,
   frmHistoryQuery,
-  frmHistory;
+  frmHistory,
+  frmGraph;
 
 var
   vRepo: TRepo;
@@ -210,6 +214,24 @@ begin
 
   if FConfig.ExternalEditor <> '' then
     TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+item.fullPath+'"', '', 1, false);
+end;
+
+procedure TRepo.actGraphExecute(Sender: TObject);
+var
+  item: TFileInfo;
+  outputFileName: string;
+  graphForm: TGraphForm;
+begin
+  if not tryGetSelectedItem(item) then
+    exit;
+  if FRepoHelper.logFile(item, outputFileName, not FShiftPressed) = 0 then
+  begin
+    FCmdResult.LoadFromFile(outputFileName);
+    graphForm := TGraphForm.Create(nil);
+    graphForm.Load(outputFileName, item.fullPath);
+    forms.add(graphForm, 'Graph '+ExtractFileName(outputFileName)).Show;
+
+  end;
 end;
 
 procedure TRepo.actHistoryExecute(Sender: TObject);

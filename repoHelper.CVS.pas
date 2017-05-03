@@ -8,6 +8,7 @@ uses
   SysUtils,
   repoHelper,
   Models.FileInfo,
+  Models.LogInfo,
   Classes;
 
 type
@@ -30,6 +31,15 @@ type
   TCVSEntries = class(TObjectList<TCVSEntry>)
   end;
 
+  TCVSBranchName = string;
+  TCVSRevision = class
+  private
+  public
+    class function getBranchRev(const childRev: string): string;
+  end;
+
+  TCVSBranches = class(TDictionary<string, TCVSBranchName>);
+
   TRepoHelperCVS = class(TInterfacedObject, IRepoHelper)
   private
     FEntries: TCVSEntries;
@@ -44,11 +54,13 @@ type
     procedure hndCommand(buff: string);
     function ParseHistory(fileName: string): TRepoHistory;
     function doAnnotateFile(item: TFileInfo; params, prefix: string; out outputFile: string; useCache: boolean): integer;
+    function doParseLog(outputFile: string; out logNodes: TLogNodes): integer;
   public
     procedure updateFilesState(files: TFilesList);
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
     function diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
+    function logFile(item: TFileInfo; out logNodes: TLogNodes; useCache: boolean): integer;
     function getHistory(sinceDate: TDate; forUser: string; inBranch: string; out history: TRepoHistory; useCache: boolean): integer;
     function annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer; overload;
     function annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string; useCache: boolean): integer; overload;
@@ -293,6 +305,21 @@ begin
   sl.Free;
 end;
 
+function TRepoHelperCVS.logFile(item: TFileInfo; out logNodes: TLogNodes; useCache: boolean): integer;
+var
+  params: string;
+  outputFile: string;
+begin
+  params := 'log -p -r "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  outputFile := item.getTempFileName('log_');
+  result := 0;
+  if not (useCache and FileExists(outputFile)) then
+    result := ExecCVSCmd(params, outputFile);
+
+  if result = 0 then
+    result := doParseLog(outputFile, logNodes);
+end;
+
 procedure TRepoHelperCVS.notifyLogging(aMsg: string);
 begin
   if Assigned(FOnLogging) then
@@ -402,6 +429,116 @@ begin
     result := ExecCVSCmd(params, outputFile);
 end;
 
+function TRepoHelperCVS.doParseLog(outputFile: string; out logNodes: TLogNodes): integer;
+var
+  sl, ss: TStringList;
+  i: Integer;
+  branches: TCVSBranches;
+  tmp: TArray<string>;
+  s, msg: string;
+  logNode: TLogNode;
+  tmpRev: string;
+begin
+  branches := TCVSBranches.Create();
+  logNodes := TLogNodes.Create;
+
+  sl := TStringList.Create;
+  ss := TStringList.Create;
+  ss.NameValueSeparator := ':';
+
+  try
+    sl.LoadFromFile(outputFile);
+    i := 0;
+    repeat
+      inc(i);
+    until sl[i] = 'symbolic names:';
+
+    logNode := TLogNode.Create;
+    logNode.branch := 'HEAD';
+    logNode.revision := '1.1';
+    logNode.isTagOnly := true;
+    logNodes.Add(logNode);
+    branches.Add(logNode.revision, logNode.branch);
+
+    repeat
+      inc(i);
+      if sl[i].StartsWith(#9) then
+      begin
+        tmp := sl[i].Split([':']);
+        logNode := TLogNode.Create;
+        logNode.branch := trim(tmp[0]);
+        logNode.revision := trim(tmp[1]);
+        logNode.isTagOnly := true;
+        logNodes.Add(logNode);
+        branches.Add(logNode.revision, logNode.branch);
+      end;
+    until sl[i].StartsWith('---');
+    // wczytywanie commitów
+    repeat
+      logNode := TLogNode.Create;
+      msg := '';
+      repeat
+        inc(i);
+        s := sl[i];
+        if s.StartsWith('revision') then
+          logNode.revision := s.Substring(length('revision '))
+        else if s.StartsWith('date: ') then
+        begin
+          s := StringReplace(s, ';', #13#10, [rfReplaceAll]);
+          s := StringReplace(s, ' ', '', [rfReplaceAll]);
+          ss.Text := s;
+          logNode.date := DateTimeStrEval('yyyy/mm/ddhh:nn:ss', ss.Values['date']);
+          logNode.author := ss.Values['author'];
+          logNode.mergeFrom := ss.Values['mergepoint'];
+        end
+        else if s.StartsWith('branches: ') then
+          logNode.mergeTo := s.Substring(length('branches: ') + 1, s.Length - 12)
+        else
+          if s <> '----------------------------' then
+            msg := msg + s + '; ';
+      until s.StartsWith('---') or s.StartsWith('===');
+      logNode.comment := trim(msg).Substring(0, msg.Length - 2);
+//      logNode.branch := branches[logNode.revision];
+      if logNode.revision <> '' then
+        logNodes.Add(logNode);
+    until s.StartsWith('===');
+    // sortujemy po revision ¿eby zbudowaæ drzewo
+    logNodes.Sort(TComparer<TLogNode>.Construct(
+      function(const Left, Right: TLogNode): integer
+      begin
+        Result := CompareText(Left.expandRevision, Right.expandRevision);
+        if result = 0 then
+          result := round(left.date - right.date);
+      end));
+    // teraz mozemy uzupe³niæ daty dla branchy
+    for i := 0 to logNodes.Count - 1 do
+    begin
+      logNode := logNodes[i];
+      if logNode.isTagOnly then
+        logNode.date := logNodes.findParent(i).date
+      else
+      begin
+        // a dla zwyk³ych revision nadajemy nazwy branchy
+        tmpRev := TCVSRevision.getBranchRev(logNode.revision);
+        logNode.branch := branches[tmpRev];
+      end;
+    end;
+    // i wreszcie sortujemy ca³oœæ po datach
+    logNodes.Sort(TComparer<TLogNode>.Construct(
+      function(const Left, Right: TLogNode): integer
+      begin
+        result := round(left.date - right.date);
+        if result = 0 then
+          result := CompareText(Left.expandRevision, Right.expandRevision);
+      end));
+  finally
+    sl.Free;
+    ss.Free;
+    branches.Free;
+  end;
+
+end;
+
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);
 var
   FileInfo: TFileInfo;
@@ -429,5 +566,55 @@ begin
     until (lastRepoIdx >= max);
   end;
 end;
+
+{ TCVSRevision }
+
+//constructor TCVSRevision.Create(AName: string);
+//begin
+//  inherited Create;
+//  name := trim(AName);
+//end;
+
+class function TCVSRevision.getBranchRev(const childRev: string): string;
+var
+  t: TArray<string>;
+begin
+  if childRev.CountChar('.') = 1 then
+    exit('1.1');
+  t := childRev.Split(['.']);
+  t[length(t) - 1] := t[length(t) - 2];
+  t[length(t) - 2] := '0';
+  result := String.join('.', t);
+end;
+
+//function TCVSRevision.isChildOf(const rev: string): boolean;
+//begin
+//  if (name = '') or (rev = '') then
+//    exit(false);
+//  result := (rev.Length < name.Length)
+//    and name.StartsWith(rev);
+//end;
+//
+//function TCVSRevision.isPartOf(const rev: string): boolean;
+//begin
+//
+//end;
+//
+//function TCVSRevision.isSameBranch(const rev: string): boolean;
+//var
+//  tmp0, tmp1: string;
+//begin
+//  if (name = '') or (rev = '') then
+//    exit(false);
+//  tmp0 := rev.Substring(0, name.LastIndexOf('.'));
+//  tmp1 := rev.Substring(0, rev.LastIndexOf('.'));
+//  result := tmp0 = tmp1;
+//end;
+//
+//function TCVSRevision.isSubbranchOf(const rev: string): boolean;
+//begin
+//
+//end;
+//
 
 end.

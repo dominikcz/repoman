@@ -6,6 +6,7 @@ uses
   Classes,
   SysUtils,
   Models.FileInfo,
+  Models.LogInfo,
   Generics.Collections;
 
 type
@@ -36,6 +37,7 @@ type
     procedure updateDirsState(dirs: TDirsList);
     procedure Init(root: string);
     function diffFile(item: TFileInfo; out outputFile: string; useCache: boolean): integer;
+    function logFile(item: TFileInfo; out logNodes: TLogNodes; useCache: boolean): integer;
     function getHistory(sinceDate: TDate; forUser: string; inBranch: string; out history: TRepoHistory; useCache: boolean): integer;
     function annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer; overload;
     function annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string; useCache: boolean): integer; overload;
@@ -47,7 +49,7 @@ type
 implementation
 
 uses
-  DateUtils;
+  whizaxe.common;
 
 { TRepoHistory }
 
@@ -67,23 +69,8 @@ begin
 end;
 
 function TRepoHistoryItem.getDtAsStr: string;
-var
-  delta: Integer;
-  FS: TFormatSettings;
-  sFormat: string;
 begin
-  FS := TFormatSettings.Create;
-  delta := DaysBetween(now, dt);
-  if delta < 7 then
-    sFormat := 'ddd hh:nn'
-  else if delta < 30 then
-    sFormat := 'ddd dd mmm'
-  else if YearsBetween(now, dt) = 0 then
-    sFormat := 'dd mmm'
-  else
-    sFormat := 'yyyy-mm-dd';
-
-  result := FormatDateTime(sFormat, dt, FS);
+  result := WxU.DateTimeAsFriendlyStr(dt);
 end;
 
 function TRepoHistoryItem.operationAsStr: string;

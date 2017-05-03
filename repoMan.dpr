@@ -22,7 +22,9 @@ uses
   fraEditor in 'Views\fraEditor.pas' {FrameEditor: TFrame},
   dmSynHighlighters in 'dmSynHighlighters.pas' {SynHighlighters: TDataModule},
   frmHistoryQuery in 'Views\frmHistoryQuery.pas' {HistoryQueryForm},
-  frmHistory in 'Views\frmHistory.pas' {HistoryForm};
+  frmHistory in 'Views\frmHistory.pas' {HistoryForm},
+  frmFileHistory in 'Views\frmFileHistory.pas' {FileHistoryForm},
+  frmGraph in 'Views\frmGraph.pas' {GraphForm};
 
 {$R *.res}
 
