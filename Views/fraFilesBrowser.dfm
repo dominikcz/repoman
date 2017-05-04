@@ -115,8 +115,6 @@ object ViewFilesBrowser: TViewFilesBrowser
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.PaintOptions = [toPopupMode, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
-    ExplicitLeft = 206
-    ExplicitTop = 38
     Columns = <
       item
         Position = 0

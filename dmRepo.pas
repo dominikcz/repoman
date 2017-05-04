@@ -2,8 +2,8 @@
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
 // - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter?)
 // ~ pokazywanie tylko ró¿nic przy porównaniu
-// - log
-// - graf
+// ~ log
+// ~ graf
 // - dodawanie, usuwanie, update, commit, import
 // - tryb git
 // - code review
@@ -13,13 +13,13 @@
 // - sprawdzanie pisowni
 // - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
 // - BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
+// - BUG: po w³¹czeniu treeOptions.SelectionOptions.toRightClickSelect na liœcie plików mo¿na klikn¹c (lewym!) przez popup zmieniaj¹c selekcjê XD
 
 // DONE:
 // + porównanie plików
 // + zewnêtrzna edycja
 // + prosty annotate
 // + historia z filtrami na: branch/usera/od daty/modu³
-
 
 unit dmRepo;
 
