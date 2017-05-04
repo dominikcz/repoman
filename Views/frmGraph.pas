@@ -33,17 +33,18 @@ type
     procedure graphPanelMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
       var Handled: Boolean);
     procedure cbxHideTrashClick(Sender: TObject);
-    procedure actFilterBranchesExecute(Sender: TObject);
     procedure actHideIgnoredExecute(Sender: TObject);
     procedure logoGraphColumnResize(Sender: TVTHeader; Column: TColumnIndex);
     procedure logoGraphColumnWidthDblClickResize(Sender: TVTHeader; Column: TColumnIndex; Shift: TShiftState; P: TPoint;
       var Allowed: Boolean);
+    procedure actFilterBranchesExecute(Sender: TObject);
   private
     fdragging: Boolean;
     fDragX: Integer;
     fDragY: Integer;
     FVSTHelper: TVSTHelper<TlogNode>;
     Fbranches: TLogBranches;
+    FBranchesFilter: TBranchFilter;
     fColResizing: Boolean;
 
     procedure hndPaintCell(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect; var DefaultDraw: boolean);
@@ -54,6 +55,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    procedure Execute(logNodes: TLogNodes);
   end;
 
 implementation
@@ -61,10 +63,12 @@ implementation
 {$R *.dfm}
 
 uses
+  Generics.Defaults,
   Models.FileInfo,
   repoHelper.CVS,
   DateUtils,
-  Vcl.GraphUtil;
+  Vcl.GraphUtil,
+  frmBranchesList;
 
 const
   MAX_COLORS = 5;
@@ -74,7 +78,8 @@ const
 
 procedure TGraphForm.actFilterBranchesExecute(Sender: TObject);
 begin
-//
+  if TBranchesListForm.Execute(FBranchesFilter) then
+    toggleDeadBranches;
 end;
 
 procedure TGraphForm.actHideIgnoredExecute(Sender: TObject);
@@ -87,12 +92,9 @@ begin
   toggleDeadBranches;
 end;
 
-procedure TGraphForm.FormCreate(Sender: TObject);
+procedure TGraphForm.Execute(logNodes: TLogNodes);
 var
-  lcvs: TRepoHelperCVS;
-  logNodes: TLogNodes;
   node: TLogNode;
-  lFileInfo: TFileInfo;
   col: Integer;
   x: Integer;
   y: Integer;
@@ -101,7 +103,9 @@ var
   key: string;
   i: Integer;
   treeCol: TVirtualTreeColumn;
-  sl: TStringList;
+//  sl: TStringList;
+  branchVisible: Boolean;
+  days: Integer;
 
   function CreateBranchCol(idx: integer): TVirtualTreeColumn;
   begin
@@ -109,44 +113,47 @@ var
     result.Text := key;
     result.Hint := Fbranches[key].revision;
     result.tag := integer(Fbranches[key]);
-    result.width := 30;
-    result.MaxWidth := 30;
+    result.width := 25;
+    result.MaxWidth := 50;
     result.MinWidth := 10;
     result.Options := result.Options - [coEditable];
   end;
-
 begin
-  lFileInfo := TFileInfo.Create('c:\mccomp\NewPos2014\Whizaxe\whizaxe.common.pas', 'c:\mccomp\NewPos2014');
-  lcvs := TRepoHelperCVS.Create;
-  lcvs.logFile(lFileInfo, logNodes, true);
-
-  FVSTHelper := TVSTHelper<TLogNode>.Create;
-  FVSTHelper.OnPaintCell := hndPaintCell;
-  FVSTHelper.OnDrawHeader := hndDrawHeader;
-  FVSTHelper.OnAfterItemPaint := hndAfterItemPaint;
-  FVSTHelper.TreeView := logoGraph;
-
   Fbranches := logNodes.getBranches;
 
   i := 0;
   for key in Fbranches.Keys do
   begin
     treeCol := CreateBranchCol(i);
-    if key = 'HEAD' then
+    if (key = 'HEAD') or (key = 'master') then
       treeCol.index := 0;
+    days := daysBetween(now, fbranches[key].lastActivity);
+    //DC: takie tam przyk³adowe inicjalizowanie widocznoœci
+    branchVisible := (key = 'HEAD') or (key = 'master')
+      or ((days <60 ) and (
+        key.StartsWith('versions_')
+        or key.StartsWith('release_')
+      ))
+      or (days < 15);
+    FBranchesFilter.Add(TBranchFilterItem.Create(key, fbranches[key].revision, fbranches[key].lastActivity, branchVisible));
     inc(i);
   end;
+  FBranchesFilter.Sort(TComparer<TBranchFilteritem>.Construct(
+    function(const Left, Right: TBranchFilteritem): integer
+    begin
+      Result := AnsiCompareStr(Left.branch, Right.branch);
+    end));
   toggleDeadBranches;
 
   FVSTHelper.Model := logNodes;
 
   y := 50;
-  sl := TStringList.Create;
-  sl.Add('rev;date;branch;mergeFrom');
+//  sl := TStringList.Create;
+//  sl.Add('rev;date;branch;mergeFrom');
   try
     for node in logNodes do
     begin
-      sl.Add(node.asString);
+//      sl.Add(node.asString);
       col := node.revision.CountChar('.');
       x := col * 100;
       y := y + 40;
@@ -161,11 +168,19 @@ begin
       shape.OnMouseUp := hndShapeMouseUp;
     end;
   finally
-    lFileInfo.Free;
-    lcvs.Free;
-    sl.SaveToFile('graph.csv');
-    sl.Free;
+//    sl.SaveToFile('graph.csv');
+//    sl.Free;
   end;
+end;
+
+procedure TGraphForm.FormCreate(Sender: TObject);
+begin
+  FBranchesFilter := TBranchFilter.Create;
+  FVSTHelper := TVSTHelper<TLogNode>.Create;
+  FVSTHelper.OnPaintCell := hndPaintCell;
+  FVSTHelper.OnDrawHeader := hndDrawHeader;
+  FVSTHelper.OnAfterItemPaint := hndAfterItemPaint;
+  FVSTHelper.TreeView := logoGraph;
 end;
 
 procedure TGraphForm.FormDestroy(Sender: TObject);
@@ -173,11 +188,12 @@ begin
   FVSTHelper.Model.Free;
   FVSTHelper.Free;
   Fbranches.Free;
+  FBranchesFilter.Free;
 end;
 
 function TGraphForm.getMaxDynColIdx: integer;
 begin
-  result := logoGraph.Header.Columns.Count - 3 - 1;
+  result := logoGraph.Header.Columns.Count - 4 - 1;
 end;
 
 procedure TGraphForm.graphPanelMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
@@ -190,9 +206,6 @@ end;
 procedure TGraphForm.hndAfterItemPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode;
   Node: PVirtualNode; ItemRect: TRect);
 var
-  x: integer;
-  p: TPoint;
-  i: Integer;
   treeCol0, treeCol1: TVirtualTreeColumn;
   r: TRect;
   p1, p2, p3, p4: TPoint;
@@ -204,6 +217,7 @@ var
     i: integer;
     crev: string;
   begin
+    result := Sender.Header.Columns[0];
     for i := getMaxDynColIdx downto 0 do
     begin
       result := Sender.Header.Columns[i];
@@ -240,19 +254,41 @@ end;
 procedure TGraphForm.hndDrawHeader(Sender: TVTHeader; var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements; var DefaultDraw: boolean);
 var
   s: string;
+  x: Integer;
 begin
   if PaintInfo.Column = nil then
     exit;
-
-  if (PaintInfo.Column.Index in [0..getMaxDynColIdx]) and (hpeText in Elements) then
+  x := getMaxDynColIdx;
+  if (hpeText in Elements) then
   begin
-    PaintInfo.TargetCanvas.Font.Orientation := 900;
-    PaintInfo.TargetCanvas.Font.color := clBlack;
-    PaintInfo.TargetCanvas.Font.color := clYellow;
-    s := PaintInfo.Column.Text;
-
-    PaintInfo.TargetCanvas.TextOut(PaintInfo.TextRectangle.Left, PaintInfo.PaintRectangle.Bottom -5 , s);
+    if (PaintInfo.Column.Index in [0..x]) then
+    begin
+      DefaultDraw := false;
+      with PaintInfo do
+      begin
+        if (PaintRectangle.Width < 12) then exit;
+        TargetCanvas.Font.Orientation := 900;
+        TargetCanvas.Font.color := clBlack; // DC: BUG workaround
+        TargetCanvas.Font.color := clYellow;
+        s := Column.Text;
+        x := PaintRectangle.Left -3;
+        TargetCanvas.TextOut(x, PaintRectangle.Bottom -5 , s);
+      end
+    end
+    else
+    begin
+      PaintInfo.TargetCanvas.Font.Orientation := 0;
+      DefaultDraw := true;
+    end;
+  end;
+  if (hpeBackground in Elements) then
+  begin
     DefaultDraw := false;
+    PaintInfo.TargetCanvas.Brush.Color := clGray;
+    PaintInfo.TargetCanvas.FillRect(PaintInfo.PaintRectangle);
+    PaintInfo.TargetCanvas.Pen.Color := clSilver;
+    PaintInfo.TargetCanvas.MoveTo(PaintInfo.PaintRectangle.Right -1, 0);
+    PaintInfo.TargetCanvas.LineTo(PaintInfo.PaintRectangle.Right -1, PaintInfo.PaintRectangle.Bottom);
   end;
 end;
 
@@ -313,7 +349,7 @@ var
 begin
   if fdragging then
   begin
-    mp := ScreenToClient(Mouse.CursorPos);
+    mp := graphPanel.ScreenToClient(Mouse.CursorPos);
     TShape(Sender).Left := mp.X - fDragX;
     TShape(Sender).top := mp.Y - fDragY;
   end;
@@ -334,8 +370,10 @@ begin
   if Column < self.getMaxDynColIdx then
   begin
     fColResizing := true;
+    sender.Columns.BeginUpdate;
     for i := 0 to getMaxDynColIdx do
       sender.Columns[i].Width := sender.Columns[Column].Width;
+    sender.Columns.EndUpdate;
     fColResizing := false;
   end;
 end;
@@ -343,10 +381,11 @@ end;
 procedure TGraphForm.logoGraphColumnWidthDblClickResize(Sender: TVTHeader; Column: TColumnIndex; Shift: TShiftState;
   P: TPoint; var Allowed: Boolean);
 begin
-  if sender.Columns[column].Width = 30 then
+  allowed := true;
+  if sender.Columns[column].Width > 15 then // DC: treshold dla drobnych poruszeñ przy dblClick
     sender.Columns[column].Width := 10
   else
-    sender.Columns[column].Width := 30;
+    sender.Columns[column].Width := 25;
 
 end;
 
@@ -362,9 +401,9 @@ begin
     key := treeCol.Text;
     if actHideIgnored.Checked then
     begin
-      if (key <> 'HEAD')
-      and (coVisible in treeCol.Options)
-      and (DaysBetween(now, Fbranches[key].lastActivity) > 60) then
+      if FBranchesFilter.isVisible(key) then
+        treeCol.Options := treeCol.Options + [coVisible]
+      else
         treeCol.Options := treeCol.Options - [coVisible];
     end
     else

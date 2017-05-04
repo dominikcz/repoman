@@ -24,7 +24,9 @@ uses
   frmHistoryQuery in 'Views\frmHistoryQuery.pas' {HistoryQueryForm},
   frmHistory in 'Views\frmHistory.pas' {HistoryForm},
   frmFileHistory in 'Views\frmFileHistory.pas' {FileHistoryForm},
-  frmGraph in 'Views\frmGraph.pas' {GraphForm};
+  frmGraph in 'Views\frmGraph.pas' {GraphForm},
+  Models.LogInfo in 'Models\Models.LogInfo.pas',
+  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm};
 
 {$R *.res}
 

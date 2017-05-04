@@ -144,7 +144,8 @@ uses
   frmDiff,
   frmHistoryQuery,
   frmHistory,
-  frmGraph;
+  frmGraph,
+  Models.logInfo;
 
 var
   vRepo: TRepo;
@@ -219,18 +220,16 @@ end;
 procedure TRepo.actGraphExecute(Sender: TObject);
 var
   item: TFileInfo;
-  outputFileName: string;
   graphForm: TGraphForm;
+  logNodes: TLogNodes;
 begin
   if not tryGetSelectedItem(item) then
     exit;
-  if FRepoHelper.logFile(item, outputFileName, not FShiftPressed) = 0 then
+  if FRepoHelper.logFile(item, logNodes, not FShiftPressed) = 0 then
   begin
-    FCmdResult.LoadFromFile(outputFileName);
     graphForm := TGraphForm.Create(nil);
-    graphForm.Load(outputFileName, item.fullPath);
-    forms.add(graphForm, 'Graph '+ExtractFileName(outputFileName)).Show;
-
+    graphForm.Execute(logNodes);
+    forms.add(graphForm, 'Graph '+item.fileName).Show;
   end;
 end;
 

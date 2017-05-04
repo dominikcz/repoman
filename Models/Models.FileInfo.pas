@@ -132,7 +132,6 @@ var
   LSearchOption: TSearchOption;
   lList: TStringDynArray;
   s: string;
-  sl: TStringList;
   item: TFileInfo;
 begin
   if flatMode then

@@ -168,10 +168,6 @@ end;
 { TGraphNode }
 
 constructor TGraphNode.Create(AOwner: TComponent; x, y: integer; const ACaption: string);
-var
-  W: Integer;
-  H: Integer;
-  S: Integer;
 begin
   inherited Create(AOwner);
   FCaption := ACaption;

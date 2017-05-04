@@ -32,8 +32,6 @@ object FileHistoryForm: TFileHistoryForm
     Align = alTop
     Caption = 'pnlGraph'
     TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 88
   end
   object PageControl1: TPageControl
     Left = 0
@@ -43,25 +41,16 @@ object FileHistoryForm: TFileHistoryForm
     ActivePage = tabView
     Align = alClient
     TabOrder = 1
-    ExplicitLeft = 176
-    ExplicitTop = 240
-    ExplicitWidth = 289
-    ExplicitHeight = 193
     object tabView: TTabSheet
       Caption = 'View'
-      ExplicitWidth = 281
-      ExplicitHeight = 165
     end
     object tabDiff: TTabSheet
       Caption = 'Diff'
       ImageIndex = 1
-      ExplicitWidth = 281
-      ExplicitHeight = 165
     end
     object tabAnnotate: TTabSheet
       Caption = 'Annotate'
       ImageIndex = 2
-      ExplicitLeft = 0
     end
   end
 end

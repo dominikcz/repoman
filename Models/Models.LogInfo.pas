@@ -34,6 +34,25 @@ type
     constructor Create(ARev: string; ALastActivity: TDateTime);
   end;
 
+  TBranchFilterItem = class
+  private
+    function getLastActivityAsString: string;
+  public
+    isSelected: boolean;
+    branch: string;
+    lastActivity: TDateTime;
+    lastRevision: string;
+    constructor Create; overload;
+    constructor Create(ABranch, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean = false); overload;
+    property lastActivityAsString: string read getLastActivityAsString;
+  end;
+
+  TBranchFilter = class(TObjectList<TBranchFilterItem>)
+  public
+    constructor Create;
+    function isVisible(branch: string): boolean;
+  end;
+
   TLogBranches = class(TObjectDictionary<string, TLogBranchInfo>)
   public
     constructor Create;
@@ -52,8 +71,7 @@ implementation
 uses
   SysUtils,
   whizaxe.common,
-  Generics.Defaults,
-  UtsLogFile;
+  Generics.Defaults;
 
 { TLogNodes }
 
@@ -68,6 +86,7 @@ var
   node: TLogNode;
   node0Rev: string;
 begin
+  node := items[idx];
   node0rev := items[idx].revision;
   for i := idx downto 0 do
   begin
@@ -80,34 +99,25 @@ end;
 
 function TLogNodes.getBranches: TLogBranches;
 var
-  dt: TDateTime;
   item: TLogNode;
   branchInfo: TLogBranchInfo;
-  isDead: Boolean;
 begin
-  dt := now;
   result := TLogBranches.Create;
-  try
-    for item in self do
+  for item in self do
+  begin
+    if (item.branch <> '') then
     begin
-      if (item.branch <> '') then
+      if not result.TryGetValue(item.branch, branchInfo) then
       begin
-        if not result.TryGetValue(item.branch, branchInfo) then
-        begin
-          branchInfo := TLogBranchInfo.Create(item.revision, item.date);
-          result.Add(item.branch, branchInfo);
-        end
-        else if (item.date > branchInfo.lastActivity) then
-        begin
-          branchInfo.lastActivity := item.date;
-          branchInfo.revision := item.revision;
-        end;
+        branchInfo := TLogBranchInfo.Create(item.revision, item.date);
+        result.Add(item.branch, branchInfo);
+      end
+      else if (item.date > branchInfo.lastActivity) then
+      begin
+        branchInfo.lastActivity := item.date;
+        branchInfo.revision := item.revision;
       end;
     end;
-  except
-  on e: Exception do
-    AddToLog(lsLogError, 'getBranches: '+item.branch+', rev: '+item.revision);
-
   end;
 end;
 
@@ -166,6 +176,44 @@ begin
   inherited Create;
   revision := ARev;
   lastActivity := ALastActivity;
+end;
+
+{ TBranchFilter }
+
+constructor TBranchFilter.Create;
+begin
+  inherited Create(true);
+end;
+
+function TBranchFilter.isVisible(branch: string): boolean;
+var
+  item: TBranchFilterItem;
+begin
+  result := false;
+  for item in self do
+    if item.branch = branch then
+      exit(item.isSelected);
+end;
+
+{ TBranchFilterItem }
+
+constructor TBranchFilterItem.Create(ABranch, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean);
+begin
+  inherited Create;
+  branch := ABranch;
+  lastActivity := ALastActivity;
+  lastRevision := ALastRevision;
+  self.isSelected := AIsSelected;
+end;
+
+function TBranchFilterItem.getLastActivityAsString: string;
+begin
+  result := WxU.DateTimeAsFriendlyStr(lastActivity);
+end;
+
+constructor TBranchFilterItem.Create;
+begin
+  inherited;
 end;
 
 end.

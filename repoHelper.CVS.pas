@@ -3,9 +3,10 @@ unit repoHelper.CVS;
 interface
 
 uses
+  Windows,
+  SysUtils,
   System.Types,
   Generics.Collections,
-  SysUtils,
   repoHelper,
   Models.FileInfo,
   Models.LogInfo,
@@ -77,7 +78,6 @@ implementation
 
 uses
   System.IOUtils,
-  Windows,
   whizaxe.common,
   Generics.Defaults,
   whizaxe.processes;
@@ -148,7 +148,11 @@ begin
   cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd +' > '+redirectTo;
   result := TProcesses.ExecBatch('cmd /c', cmd, FRootPath);
   if result <> 0 then
+  begin
     notifyLogging('ERROR: '+IntToStr(result));
+    if FileExists(redirectTo) then
+      DeleteFile(redirectTo);
+  end;
 end;
 
 function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
@@ -157,6 +161,7 @@ begin
   notifyLogging('cvs ' + cmd);
   cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd;
   TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
+  result := 0;
 end;
 
 function TRepoHelperCVS.getHistory(sinceDate: TDate; forUser, inBranch: string; out history: TRepoHistory; useCache: boolean): integer;
@@ -312,7 +317,7 @@ var
   params: string;
   outputFile: string;
 begin
-  params := 'log -p -r "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := 'log -r "' + item.getFullPathWithoutRoot(FRootPath)+'"';
   outputFile := item.getTempFileName('log_');
   result := 0;
   if not (useCache and FileExists(outputFile)) then
@@ -496,14 +501,14 @@ begin
         else if s.StartsWith('branches: ') then
           logNode.mergeTo := s.Substring(length('branches: ') + 1, s.Length - 12)
         else
-          if s <> '----------------------------' then
+          if (s <> '----------------------------') and (not s.StartsWith('===========')) then
             msg := msg + s + '; ';
-      until s.StartsWith('---') or s.StartsWith('===');
+      until s.StartsWith('--------') or s.StartsWith('===========');
       logNode.comment := trim(msg).Substring(0, msg.Length - 2);
 //      logNode.branch := branches[logNode.revision];
       if logNode.revision <> '' then
         logNodes.Add(logNode);
-    until s.StartsWith('===');
+    until s.StartsWith('===========');
     // sortujemy po revision ¿eby zbudowaæ drzewo
     logNodes.Sort(TComparer<TLogNode>.Construct(
       function(const Left, Right: TLogNode): integer
@@ -512,7 +517,7 @@ begin
         if result = 0 then
           result := round(left.date - right.date);
       end));
-    // teraz mozemy uzupe³niæ daty dla branchy
+    // teraz mo¿emy uzupe³niæ daty dla branchy
     for i := 0 to logNodes.Count - 1 do
     begin
       logNode := logNodes[i];
@@ -533,6 +538,7 @@ begin
         if result = 0 then
           result := CompareText(Left.expandRevision, Right.expandRevision);
       end));
+    result := 0;
   finally
     sl.Free;
     ss.Free;
@@ -571,12 +577,6 @@ end;
 
 { TCVSRevision }
 
-//constructor TCVSRevision.Create(AName: string);
-//begin
-//  inherited Create;
-//  name := trim(AName);
-//end;
-
 class function TCVSRevision.getBranchRev(const childRev: string): string;
 var
   t: TArray<string>;
@@ -588,26 +588,6 @@ begin
   t[length(t) - 2] := '0';
   result := String.join('.', t);
 end;
-
-//function TCVSRevision.isChildOf(const rev: string): boolean;
-//begin
-//  if (name = '') or (rev = '') then
-//    exit(false);
-//  result := (rev.Length < name.Length)
-//    and name.StartsWith(rev);
-//end;
-//
-//function TCVSRevision.isPartOf(const rev: string): boolean;
-//begin
-//
-//end;
-//
-//
-//function TCVSRevision.isSubbranchOf(const rev: string): boolean;
-//begin
-//
-//end;
-//
 
 class function TCVSRevision.isSameBranch(const rev1, rev2: string): boolean;
 var

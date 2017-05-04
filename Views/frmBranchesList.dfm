@@ -1,23 +1,26 @@
 object BranchesListForm: TBranchesListForm
   Left = 0
   Top = 0
+  BorderStyle = bsToolWindow
   Caption = 'Branches list'
-  ClientHeight = 343
-  ClientWidth = 278
-  Color = clBtnFace
+  ClientHeight = 353
+  ClientWidth = 270
+  Color = clWhite
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
-  object logoGraph: TVirtualStringTree
+  object branchesTree: TVirtualStringTree
     Left = 0
     Top = 0
-    Width = 278
-    Height = 343
+    Width = 270
+    Height = 304
     Align = alClient
     BevelInner = bvNone
     BevelOuter = bvNone
@@ -28,20 +31,23 @@ object BranchesListForm: TBranchesListForm
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.Height = 21
-    Header.Options = [hoColumnResize, hoDrag, hoShowHint, hoShowSortGlyphs, hoVisible, hoHeightResize]
+    Header.Options = [hoColumnResize, hoDrag, hoShowImages, hoShowSortGlyphs, hoVisible, hoHeightResize]
+    Header.SortColumn = 0
+    IncrementalSearch = isAll
     Indent = 20
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toReadOnly, toEditOnClick]
     TreeOptions.PaintOptions = [toPopupMode, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
-    ExplicitWidth = 385
+    ExplicitTop = -6
     Columns = <
       item
+        CheckBox = True
         Position = 0
-        Width = 98
+        Width = 133
         WideText = 'branch'
         WideHint = 'branch'
       end
@@ -56,5 +62,40 @@ object BranchesListForm: TBranchesListForm
         Width = 115
         WideText = 'last revision'
       end>
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 304
+    Width = 270
+    Height = 49
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ShowCaption = False
+    TabOrder = 1
+    DesignSize = (
+      270
+      49)
+    object btnCancel: TButton
+      Left = 11
+      Top = 12
+      Width = 75
+      Height = 25
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 0
+    end
+    object btnOK: TButton
+      Left = 185
+      Top = 12
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 1
+    end
   end
 end

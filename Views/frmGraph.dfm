@@ -28,11 +28,19 @@ object GraphForm: TGraphForm
     TabOrder = 0
     object tabGraph: TTabSheet
       Caption = 'Graph'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object graphPanel: TScrollBox
         Left = 0
         Top = 0
         Width = 816
         Height = 407
+        HorzScrollBar.Smooth = True
+        HorzScrollBar.Tracking = True
+        VertScrollBar.Smooth = True
+        VertScrollBar.Tracking = True
         Align = alClient
         TabOrder = 0
         OnMouseWheel = graphPanelMouseWheel
@@ -49,6 +57,10 @@ object GraphForm: TGraphForm
     object tabGraphLog: TTabSheet
       Caption = 'Graph + log'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object logoGraph: TVirtualStringTree
         Left = 0
         Top = 0
@@ -65,7 +77,7 @@ object GraphForm: TGraphForm
         Header.Font.Style = []
         Header.Height = 119
         Header.MainColumn = 1
-        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint, hoVisible, hoDisableAnimatedResize, hoHeightResize]
+        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint, hoVisible, hoFullRepaintOnResize, hoDisableAnimatedResize, hoHeightResize]
         HintMode = hmTooltip
         Indent = 20
         ParentShowHint = False
@@ -82,20 +94,25 @@ object GraphForm: TGraphForm
           item
             Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 40
+            Width = 78
             WideText = 'date'
             WideHint = 'DateAsString'
           end
           item
-            Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
+            WideText = 'branch'
+            WideHint = 'branch'
+          end
+          item
+            Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 2
             Width = 648
             WideText = 'comment'
             WideHint = 'comment'
           end
           item
             Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-            Position = 2
+            Position = 3
             Width = 87
             WideText = 'revision'
             WideHint = 'revision'
