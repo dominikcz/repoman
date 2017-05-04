@@ -6,7 +6,8 @@ uses
   repoHelper.CVS in 'repoHelper.CVS.pas',
   Models.LogInfo in 'Models\Models.LogInfo.pas',
   Models.FileInfo in 'Models\Models.FileInfo.pas',
-  graph in 'graph.pas';
+  graph in 'graph.pas',
+  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm};
 
 {$R *.res}
 

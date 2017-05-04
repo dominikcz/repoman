@@ -36,6 +36,8 @@ type
   private
   public
     class function getBranchRev(const childRev: string): string;
+    class function isSameBranch(const rev1, rev2: string): boolean;
+
   end;
 
   TCVSBranches = class(TDictionary<string, TCVSBranchName>);
@@ -600,21 +602,22 @@ end;
 //
 //end;
 //
-//function TCVSRevision.isSameBranch(const rev: string): boolean;
-//var
-//  tmp0, tmp1: string;
-//begin
-//  if (name = '') or (rev = '') then
-//    exit(false);
-//  tmp0 := rev.Substring(0, name.LastIndexOf('.'));
-//  tmp1 := rev.Substring(0, rev.LastIndexOf('.'));
-//  result := tmp0 = tmp1;
-//end;
 //
 //function TCVSRevision.isSubbranchOf(const rev: string): boolean;
 //begin
 //
 //end;
 //
+
+class function TCVSRevision.isSameBranch(const rev1, rev2: string): boolean;
+var
+  tmp0, tmp1: string;
+begin
+  if (rev1 = '') or (rev2 = '') then
+    exit(false);
+  tmp0 := rev1.Substring(0, rev1.LastIndexOf('.'));
+  tmp1 := rev2.Substring(0, rev2.LastIndexOf('.'));
+  result := tmp0 = tmp1;
+end;
 
 end.
