@@ -57,10 +57,6 @@ object GraphForm: TGraphForm
     object tabGraphLog: TTabSheet
       Caption = 'Graph + log'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object logoGraph: TVirtualStringTree
         Left = 0
         Top = 0

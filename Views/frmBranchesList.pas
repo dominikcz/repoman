@@ -20,7 +20,7 @@ type
     { Private declarations }
     FVSTHelper: TVSTHelper<TBranchFilterItem>;
     FWorkModel: TBranchFilter;
-    procedure updateModel(srcModel, destModel: TBranchFilter);
+    procedure updateModel(destModel: TBranchFilter);
     procedure hndCompareNodes(Item1, Item2: TBranchFilterItem; Column: TColumnIndex; var Result: Integer);
   public
     { Public declarations }
@@ -43,12 +43,12 @@ var
 begin
   form := TBranchesListForm.Create(nil);
   try
-    form.updateModel(model, form.FWorkModel);
+    form.FWorkModel := TSerializer.CloneObject<TBranchFilter>(model);
     form.FVSTHelper.Model := form.FWorkModel;
     rc := form.ShowModal;
     result := (rc = mrOK);
     if result then
-      form.updateModel(form.FWorkModel, model);
+      form.updateModel(model);
   finally
     form.Free;
   end;
@@ -62,7 +62,7 @@ begin
   FVSTHelper.CheckType := ctCheckBox;
   FVSTHelper.CheckBindColumn := 'isSelected';
   FVSTHelper.CheckDisplayColumn := 'branch';
-  FWorkModel := TBranchFilter.Create;
+  FWorkModel := nil;
 end;
 
 procedure TBranchesListForm.FormDestroy(Sender: TObject);
@@ -79,13 +79,13 @@ begin
   end;
 end;
 
-procedure TBranchesListForm.updateModel(srcModel, destModel: TBranchFilter);
+procedure TBranchesListForm.updateModel(destModel: TBranchFilter);
 var
-  item: TBranchFilteritem;
+  i: Integer;
 begin
-  destmodel.Clear;
-  for item in srcModel do
-    destModel.add(TSerializer.CloneObject<TBranchFilterItem>(item));
+  // nie mo¿emy klonowaæ, bo trzymamy referencje do obiektów w GUI a i tak potrzebujemy jedyni isSelected;
+  for i := 0 to FWorkModel.Count - 1 do
+    destModel.Items[i].isSelected := FWorkModel.Items[i].isSelected;
 end;
 
 end.

@@ -61,7 +61,6 @@ type
     { Private declarations }
     FDiff: TDiff;
     FCELines1, FCELines2: TStrings;
-    fStatusbarStr: string;
     pbDiffMarkerBmp: TBitmap;
     FIsSyncing: boolean;
     fShowDiffsOnly: boolean;
@@ -121,7 +120,6 @@ end;
 
 procedure TDiffForm.Compare;
 var
-  i: Integer;
   HashList1, HashList2: TList;
 begin
   if (FCELines1.Count = 0) or (FCELines2.Count = 0) then

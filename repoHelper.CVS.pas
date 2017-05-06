@@ -37,6 +37,7 @@ type
   private
   public
     class function getBranchRev(const childRev: string): string;
+    class function getParentRev(const childRev: string): string;
     class function isSameBranch(const rev1, rev2: string): boolean;
 
   end;
@@ -317,7 +318,7 @@ var
   params: string;
   outputFile: string;
 begin
-  params := 'log -r "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := 'log "' + item.getFullPathWithoutRoot(FRootPath)+'"';
   outputFile := item.getTempFileName('log_');
   result := 0;
   if not (useCache and FileExists(outputFile)) then
@@ -464,6 +465,7 @@ begin
     logNode.branch := 'HEAD';
     logNode.revision := '1.1';
     logNode.isTagOnly := true;
+    logNode.comment := '';
     logNodes.Add(logNode);
     branches.Add(logNode.revision, logNode.branch);
 
@@ -476,6 +478,8 @@ begin
         logNode.branch := trim(tmp[0]);
         logNode.revision := trim(tmp[1]);
         logNode.isTagOnly := true;
+        logNode.mergeFrom := TCVSRevision.getParentRev(logNode.revision);
+        logNode.comment := '[TAGGED]';
         logNodes.Add(logNode);
         branches.Add(logNode.revision, logNode.branch);
       end;
@@ -506,6 +510,7 @@ begin
       until s.StartsWith('--------') or s.StartsWith('===========');
       logNode.comment := trim(msg).Substring(0, msg.Length - 2);
 //      logNode.branch := branches[logNode.revision];
+
       if logNode.revision <> '' then
         logNodes.Add(logNode);
     until s.StartsWith('===========');
@@ -586,6 +591,17 @@ begin
   t := childRev.Split(['.']);
   t[length(t) - 1] := t[length(t) - 2];
   t[length(t) - 2] := '0';
+  result := String.join('.', t);
+end;
+
+class function TCVSRevision.getParentRev(const childRev: string): string;
+var
+  t: TArray<string>;
+begin
+  if childRev.CountChar('.') = 1 then
+    exit('');
+  t := childRev.Split(['.']);
+  delete(t, length(t) - 2, 2);
   result := String.join('.', t);
 end;
 

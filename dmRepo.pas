@@ -3,7 +3,7 @@
 // - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter?)
 // ~ pokazywanie tylko ró¿nic przy porównaniu
 // ~ log
-// ~ graf
+// ~ graf w stylu CVS
 // - dodawanie, usuwanie, update, commit, import
 // - tryb git
 // - code review
@@ -14,12 +14,15 @@
 // - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
 // - BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
 // - BUG: po w³¹czeniu treeOptions.SelectionOptions.toRightClickSelect na liœcie plików mo¿na klikn¹c (lewym!) przez popup zmieniaj¹c selekcjê XD
+// - BUG: uzale¿nianie kolorów kolumn na grafie od column.Position jest tak samo bez sensu jak od column.Index. Przyda³by siê column.VisibleIndex.. mo¿e jest?
+// - BUG: przy rysowaniu headerka w VSTHelperze gubimy ewentualne checkboxy (jak w frmBranchesList.pas)
 
 // DONE:
 // + porównanie plików
 // + zewnêtrzna edycja
 // + prosty annotate
 // + historia z filtrami na: branch/usera/od daty/modu³
+// + graf w stylu GIT
 
 unit dmRepo;
 
@@ -185,7 +188,6 @@ end;
 procedure TRepo.actDiffExecute(Sender: TObject);
 var
   item: TFileInfo;
-  cmd: string;
   outputFileName: string;
   diffForm: TDiffForm;
 begin

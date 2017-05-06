@@ -27,13 +27,6 @@ type
     property DateAsString: string read getDateAsString;
   end;
 
-  TLogBranchInfo = class
-  public
-    revision: string;
-    lastActivity: TDateTime;
-    constructor Create(ARev: string; ALastActivity: TDateTime);
-  end;
-
   TBranchFilterItem = class
   private
     function getLastActivityAsString: string;
@@ -41,9 +34,10 @@ type
     isSelected: boolean;
     branch: string;
     lastActivity: TDateTime;
+    firstRevision: string;
     lastRevision: string;
     constructor Create; overload;
-    constructor Create(ABranch, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean = false); overload;
+    constructor Create(ABranch, AFirstRevision, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean = false); overload;
     property lastActivityAsString: string read getLastActivityAsString;
   end;
 
@@ -51,17 +45,13 @@ type
   public
     constructor Create;
     function isVisible(branch: string): boolean;
-  end;
-
-  TLogBranches = class(TObjectDictionary<string, TLogBranchInfo>)
-  public
-    constructor Create;
+    function tryGetBranch(branch: string; out item: TBranchFilterItem): boolean;
   end;
 
   TLogNodes = class(TObjectList<TLogNode>)
   public
     constructor Create;
-    function getBranches: TLogBranches;
+    function getBranchesFilter: TBranchFilter;
     function findParent(idx: integer): TLogNode;
   end;
 
@@ -97,25 +87,25 @@ begin
   result := node;
 end;
 
-function TLogNodes.getBranches: TLogBranches;
+function TLogNodes.getBranchesFilter: TBranchFilter;
 var
   item: TLogNode;
-  branchInfo: TLogBranchInfo;
+  branchItem: TBranchFilterItem;
 begin
-  result := TLogBranches.Create;
+  result := TBranchFilter.Create;
   for item in self do
   begin
     if (item.branch <> '') then
     begin
-      if not result.TryGetValue(item.branch, branchInfo) then
+      if not result.tryGetBranch(item.branch, branchItem) then
       begin
-        branchInfo := TLogBranchInfo.Create(item.revision, item.date);
-        result.Add(item.branch, branchInfo);
+        branchItem := TBranchFilterItem.Create(item.branch, item.revision, item.revision, item.date);
+        result.Add(branchItem);
       end
-      else if (item.date > branchInfo.lastActivity) then
+      else if (item.date > branchItem.lastActivity) then
       begin
-        branchInfo.lastActivity := item.date;
-        branchInfo.revision := item.revision;
+        branchItem.lastActivity := item.date;
+        branchItem.lastRevision := item.revision;
       end;
     end;
   end;
@@ -162,22 +152,6 @@ begin
   result := doExpandRevision(revision);
 end;
 
-{ TLogBranches }
-
-constructor TLogBranches.Create;
-begin
-  inherited Create([doOwnsValues]);
-end;
-
-{ TLogBranchInfo }
-
-constructor TLogBranchInfo.Create(ARev: string; ALastActivity: TDateTime);
-begin
-  inherited Create;
-  revision := ARev;
-  lastActivity := ALastActivity;
-end;
-
 { TBranchFilter }
 
 constructor TBranchFilter.Create;
@@ -195,13 +169,27 @@ begin
       exit(item.isSelected);
 end;
 
+function TBranchFilter.tryGetBranch(branch: string; out item: TBranchFilterItem): boolean;
+var
+  lItem: TBranchFilterItem;
+begin
+  result := false;
+  for lItem in self do
+    if lItem.branch = branch then
+    begin
+      item := lItem;
+      exit(true);
+    end;
+end;
+
 { TBranchFilterItem }
 
-constructor TBranchFilterItem.Create(ABranch, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean);
+constructor TBranchFilterItem.Create(ABranch, AFirstRevision, ALastRevision: string; ALastActivity: TDateTime; AIsSelected: boolean);
 begin
   inherited Create;
   branch := ABranch;
   lastActivity := ALastActivity;
+  firstRevision := AFirstRevision;
   lastRevision := ALastRevision;
   self.isSelected := AIsSelected;
 end;

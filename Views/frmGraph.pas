@@ -39,11 +39,11 @@ type
       var Allowed: Boolean);
     procedure actFilterBranchesExecute(Sender: TObject);
   private
+    { Private declarations }
     fdragging: Boolean;
     fDragX: Integer;
     fDragY: Integer;
     FVSTHelper: TVSTHelper<TlogNode>;
-    Fbranches: TLogBranches;
     FBranchesFilter: TBranchFilter;
     fColResizing: Boolean;
 
@@ -51,8 +51,11 @@ type
     procedure hndDrawHeader(Sender: TVTHeader; var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements; var DefaultDraw: boolean);
     procedure hndAfterItemPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode; Node: PVirtualNode; ItemRect: TRect);
     procedure toggleDeadBranches;
+    procedure prepareCVSStyleGraph(logNodes: TLogNodes);
+    procedure prepareGitStyleGraph(logNodes: TLogNodes);
+
     function getMaxDynColIdx: integer;
-    { Private declarations }
+    function CreateBranchCol(idx: integer; branchItem: TBranchFilterItem): TVirtualTreeColumn;
   public
     { Public declarations }
     procedure Execute(logNodes: TLogNodes);
@@ -73,6 +76,7 @@ uses
 const
   MAX_COLORS = 5;
   BRANCHES_COLORS: array[0..MAX_COLORS -1] of string = ('#6963FF', '#47E8D4', '#6BDB52', '#E84BA5', '#FFA657');
+  MERGE_COLOR = clRed;
 
 { TGraphForm }
 
@@ -92,85 +96,22 @@ begin
   toggleDeadBranches;
 end;
 
-procedure TGraphForm.Execute(logNodes: TLogNodes);
-var
-  node: TLogNode;
-  col: Integer;
-  x: Integer;
-  y: Integer;
-  r: TRect;
-  shape: TGraphShape;
-  key: string;
-  i: Integer;
-  treeCol: TVirtualTreeColumn;
-//  sl: TStringList;
-  branchVisible: Boolean;
-  days: Integer;
-
-  function CreateBranchCol(idx: integer): TVirtualTreeColumn;
-  begin
-    result := TVirtualTreeColumn(FVSTHelper.TreeView.Header.Columns.Insert(i));
-    result.Text := key;
-    result.Hint := Fbranches[key].revision;
-    result.tag := integer(Fbranches[key]);
-    result.width := 25;
-    result.MaxWidth := 50;
-    result.MinWidth := 10;
-    result.Options := result.Options - [coEditable];
-  end;
+function TGraphForm.CreateBranchCol(idx: integer; branchItem: TBranchFilterItem): TVirtualTreeColumn;
 begin
-  Fbranches := logNodes.getBranches;
+  result := TVirtualTreeColumn(FVSTHelper.TreeView.Header.Columns.Insert(idx));
+  result.Text := branchItem.branch;
+  result.Hint := branchItem.lastRevision;
+  result.tag := integer(branchItem);
+  result.width := 25;
+  result.MaxWidth := 50;
+  result.MinWidth := 10;
+  result.Options := result.Options - [coEditable];
+end;
 
-  i := 0;
-  for key in Fbranches.Keys do
-  begin
-    treeCol := CreateBranchCol(i);
-    if (key = 'HEAD') or (key = 'master') then
-      treeCol.index := 0;
-    days := daysBetween(now, fbranches[key].lastActivity);
-    //DC: takie tam przyk³adowe inicjalizowanie widocznoœci
-    branchVisible := (key = 'HEAD') or (key = 'master')
-      or ((days <60 ) and (
-        key.StartsWith('versions_')
-        or key.StartsWith('release_')
-      ))
-      or (days < 15);
-    FBranchesFilter.Add(TBranchFilterItem.Create(key, fbranches[key].revision, fbranches[key].lastActivity, branchVisible));
-    inc(i);
-  end;
-  FBranchesFilter.Sort(TComparer<TBranchFilteritem>.Construct(
-    function(const Left, Right: TBranchFilteritem): integer
-    begin
-      Result := AnsiCompareStr(Left.branch, Right.branch);
-    end));
-  toggleDeadBranches;
-
-  FVSTHelper.Model := logNodes;
-
-  y := 50;
-//  sl := TStringList.Create;
-//  sl.Add('rev;date;branch;mergeFrom');
-  try
-    for node in logNodes do
-    begin
-//      sl.Add(node.asString);
-      col := node.revision.CountChar('.');
-      x := col * 100;
-      y := y + 40;
-      r := Rect(x, y, x + 10, y +30);
-      if node.isTagOnly then
-        shape := TGraphBranch.Create(graphPanel, x, y, node.branch)
-      else
-        shape := TGraphNode.Create(graphPanel, x, y, node.revision);
-
-      shape.OnMouseDown := hndShapeMouseDown;
-      shape.OnMouseMove := hndShapeMouseMove;
-      shape.OnMouseUp := hndShapeMouseUp;
-    end;
-  finally
-//    sl.SaveToFile('graph.csv');
-//    sl.Free;
-  end;
+procedure TGraphForm.Execute(logNodes: TLogNodes);
+begin
+  prepareGitStyleGraph(logNodes);
+  prepareCVSStyleGraph(logNodes);
 end;
 
 procedure TGraphForm.FormCreate(Sender: TObject);
@@ -187,7 +128,6 @@ procedure TGraphForm.FormDestroy(Sender: TObject);
 begin
   FVSTHelper.Model.Free;
   FVSTHelper.Free;
-  Fbranches.Free;
   FBranchesFilter.Free;
 end;
 
@@ -205,46 +145,69 @@ end;
 
 procedure TGraphForm.hndAfterItemPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode;
   Node: PVirtualNode; ItemRect: TRect);
+
+  function findColWithRev(ARev: string; isTagOnly: boolean): TVirtualTreeColumn;
+  var
+    i: integer;
+    crev: string;
+    sameCol: Integer;
+  begin
+    sameCol:= -1;
+    for i := 0 to getMaxDynColIdx do
+    begin
+      result := Sender.Header.Columns[i];
+      if isTagOnly then
+        crev := TBranchFilterItem(result.Tag).firstRevision
+      else
+        crev := TBranchFilterItem(result.Tag).lastRevision;
+      if crev = ARev then
+        exit;
+      if (sameCol < 0) and TCVSRevision.isSameBranch(ARev, crev) then
+        sameCol := i;
+    end;
+    // jeœli jakimœ cudem nie dopasujemy to lepiej wskazaæ cokolwiek...
+    if sameCol < 0 then
+      sameCol := 0;
+    result := Sender.Header.Columns[sameCol];
+  end;
+
 var
   treeCol0, treeCol1: TVirtualTreeColumn;
   r: TRect;
   p1, p2, p3, p4: TPoint;
   dx: Integer;
   dy: integer;
-
-  function findColWithRev(ARev: string): TVirtualTreeColumn;
-  var
-    i: integer;
-    crev: string;
-  begin
-    result := Sender.Header.Columns[0];
-    for i := getMaxDynColIdx downto 0 do
-    begin
-      result := Sender.Header.Columns[i];
-      crev := TLogBranchInfo(result.Tag).revision;
-      if TCVSRevision.isSameBranch(ARev, crev) then
-        exit;
-    end;
-  end;
+  dx1: Integer;
 
 begin
+  // tutaj rysujemy linie mergowania
   if item.mergeFrom <> '' then
   begin
-    treeCol0 := findColWithRev(item.mergeFrom);
-    treeCol1 := findColWithRev(item.revision);
+    treeCol0 := findColWithRev(item.mergeFrom, item.isTagOnly);
+    treeCol1 := findColWithRev(item.revision, item.isTagOnly);
     if not ((coVisible in treeCol1.Options) and (coVisible in treeCol0.Options))
       or (treeCol0.Text = treeCol1.Text) then
       exit;
 
     dx := treeCol0.Width div 2 -1;
     dy := TVirtualStringTree(sender).DefaultNodeHeight div 2 -1;
+
+    // offset potrzebny do rysowania lini merge tylko do obwodu ko³a
+    if treeCol0.Left > treeCol1.Left then
+      dx1 := - 4
+    else
+      dx1 := + 5;
+
     r := TargetCanvas.ClipRect;
     p1 := Point(r.Left + treeCol0.Left + dx, 0);
-    p4 := Point(r.Left + treeCol1.left + dx, dy);
+    p4 := Point(r.Left + treeCol1.left + dx - dx1, dy);
     p2 := Point(p1.X + (p4.X - p1.X) div 4, dy);
     p3 := Point(p4.X - (p4.X - p1.X) div 4, dy);
-    TargetCanvas.Pen.Color := clRed;
-    TargetCanvas.Pen.Width := 1;
+    TargetCanvas.Pen.Color := MERGE_COLOR;
+    if Sender.Selected[node] then
+      TargetCanvas.Pen.Width := 3
+    else
+      TargetCanvas.Pen.Width := 1;
 
     TargetCanvas.PolyBezier([p1, p2, p3, p4]);
   end;
@@ -268,7 +231,7 @@ begin
       begin
         if (PaintRectangle.Width < 12) then exit;
         TargetCanvas.Font.Orientation := 900;
-        TargetCanvas.Font.color := clBlack; // DC: BUG workaround
+        TargetCanvas.Font.color := clNone; // DC: BUG workaround
         TargetCanvas.Font.color := clYellow;
         s := Column.Text;
         x := PaintRectangle.Left -3;
@@ -309,7 +272,7 @@ begin
 
     c := WebColorStrToColor(BRANCHES_COLORS[(col.Index) mod MAX_COLORS]);
     TargetCanvas.Pen.Style := psSolid;
-    TargetCanvas.Pen.Width := 3;
+    TargetCanvas.Pen.Width := 2;
     TargetCanvas.Pen.Color := c;
     x := CellRect.Left + CellRect.Width div 2 -1;
     TargetCanvas.MoveTo(x, 0);
@@ -317,13 +280,33 @@ begin
 
     if item.branch = branch then
     begin
-      TargetCanvas.Brush.Style := bsSolid;
       TargetCanvas.Brush.Color := c;
+      if item.isTagOnly then
+      begin
+        if Sender.Selected[node] then
+        begin
+          TargetCanvas.Pen.Color := MERGE_COLOR;
+          TargetCanvas.Pen.Width := 3;
+        end
+        else
+          TargetCanvas.Pen.Width := 1;
+        TargetCanvas.Brush.Color := clWhite;
+        TargetCanvas.Brush.Style := bsSolid;
+      end
+      else
+      begin
+        if Sender.Selected[node] then
+        begin
+          TargetCanvas.Pen.Color := MERGE_COLOR;
+          TargetCanvas.Brush.Color := MERGE_COLOR;
+        end;
+        TargetCanvas.Brush.Style := bsSolid;
+      end;
 
       r := CellRect;
-      r.Offset(r.Width div 2 - 5, 4);
-      r.Width := 9;
-      r.Height := 9;
+      r.Offset(r.Width div 2 - 6, 4);
+      r.Width := 10;
+      r.Height := 10;
       TargetCanvas.Ellipse(r);
     end;
     DefaultDraw := false;
@@ -387,6 +370,80 @@ begin
   else
     sender.Columns[column].Width := 25;
 
+end;
+
+procedure TGraphForm.prepareCVSStyleGraph(logNodes: TLogNodes);
+var
+  node: TLogNode;
+  col: Integer;
+  x: Integer;
+  y: Integer;
+  r: TRect;
+  shape: TGraphShape;
+//  sl: TStringList;
+begin
+  y := 50;
+//  sl := TStringList.Create;
+//  sl.Add('rev;date;branch;mergeFrom');
+  try
+    for node in logNodes do
+    begin
+//      sl.Add(node.asString);
+      col := node.revision.CountChar('.');
+      x := col * 100;
+      y := y + 40;
+      r := Rect(x, y, x + 10, y +30);
+      if node.isTagOnly then
+        shape := TGraphBranch.Create(graphPanel, x, y, node.branch)
+      else
+        shape := TGraphNode.Create(graphPanel, x, y, node.revision);
+
+      shape.OnMouseDown := hndShapeMouseDown;
+      shape.OnMouseMove := hndShapeMouseMove;
+      shape.OnMouseUp := hndShapeMouseUp;
+    end;
+  finally
+//    sl.SaveToFile('graph.csv');
+//    sl.Free;
+  end;
+
+end;
+
+procedure TGraphForm.prepareGitStyleGraph(logNodes: TLogNodes);
+var
+  i: Integer;
+  treeCol: TVirtualTreeColumn;
+  days: Integer;
+  branchItem: TBranchFilterItem;
+
+begin
+  FBranchesFilter.Free;
+  FBranchesFilter := logNodes.getBranchesFilter;
+  i := 0;
+  for branchItem in FBranchesFilter do
+  begin
+    treeCol := CreateBranchCol(i, branchItem);
+    days := daysBetween(now, branchItem.lastActivity);
+    //DC: takie tam przyk³adowe inicjalizowanie widocznoœci
+    branchItem.isSelected := (branchItem.branch = 'HEAD') or (branchItem.branch = 'master')
+      or ((days <60 ) and (
+        branchItem.branch.StartsWith('versions_')
+        or branchItem.branch.StartsWith('release_')
+      ))
+      or (days < 15);
+    inc(i);
+  end;
+  // mamy ju¿ branche w porz¹dku chronologicznym,
+  // teraz sortujemy alfaetycznie na potrzeby filtrowania
+  FBranchesFilter.Sort(TComparer<TBranchFilteritem>.Construct(
+    function(const Left, Right: TBranchFilteritem): integer
+    begin
+      Result := AnsiCompareStr(Left.branch, Right.branch);
+    end));
+  toggleDeadBranches;
+
+  FVSTHelper.Model := logNodes;
+  logoGraph.ScrollIntoView(logoGraph.GetLast, false);
 end;
 
 procedure TGraphForm.toggleDeadBranches;
