@@ -1,6 +1,7 @@
 program graphTest;
 
 uses
+  Vcl.Dialogs,
   Vcl.Forms,
   frmGraph in 'Views\frmGraph.pas' {GraphForm},
   repoHelper.CVS in 'repoHelper.CVS.pas',
@@ -27,10 +28,14 @@ begin
 
   lFileInfo := TFileInfo.Create(fileName, 'c:\mccomp\NewPos2014');
   lcvs := TRepoHelperCVS.Create;
-  lcvs.logFile(lFileInfo, logNodes, true);
+  if lcvs.logFile(lFileInfo, logNodes, true) <> 0 then
+  begin
+    ShowMessage('b³ad');
+    exit;
+  end;
 
   Application.CreateForm(TgraphForm, graphForm);
-  graphForm.Execute(fileName, logNodes);
+  graphForm.Execute(logNodes);
   Application.Run;
 
   lFileInfo.Free;

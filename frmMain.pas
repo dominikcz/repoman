@@ -32,7 +32,8 @@ implementation
 {$R *.dfm}
 
 uses
-  dmRepo;
+  dmRepo,
+  whizaxe.Screen;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -43,7 +44,14 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+  preffMon: Integer;
 begin
+  preffMon := FindPrefferedMonitor(1920, 1080);
+
+  Left := Screen.Monitors[preffMon].Left;
+  Top := Screen.Monitors[preffMon].Top;
+
   repo.actRefreshExecute(sender);
 end;
 

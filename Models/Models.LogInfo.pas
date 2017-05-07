@@ -53,6 +53,7 @@ type
     constructor Create;
     function getBranchesFilter: TBranchFilter;
     function findParent(idx: integer): TLogNode;
+    function tryFindRevision(ARev: string; out node: TLogNode): boolean;
   end;
 
 
@@ -109,6 +110,19 @@ begin
       end;
     end;
   end;
+end;
+
+function TLogNodes.tryFindRevision(ARev: string; out node: TLogNode): boolean;
+var
+  item: TLogNode;
+begin
+  result := false;
+  for item in self do
+    if item.revision = ARev then
+    begin
+      node := item;
+      exit(true);
+    end;
 end;
 
 { TLogNode }

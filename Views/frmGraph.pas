@@ -4,17 +4,26 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, graph, Vcl.StdCtrls, Vcl.ComCtrls, VirtualTrees,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.ComCtrls, VirtualTrees,
+  System.ImageList, Vcl.ImgList, PngImageList, System.Actions, Vcl.ActnList, Vcl.Menus,
+  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup,
+  Generics.Collections,
+  graph,
   whizaxe.VSTHelper,
-  Models.LogInfo, System.ImageList, Vcl.ImgList, PngImageList, System.Actions, Vcl.ActnList, Vcl.Menus,
-  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup;
+  Models.LogInfo;
 
 type
+  TGraphNodes = class(TObjectDictionary<TLogNode, TGraphNode>)
+  public
+    constructor Create;
+//    function tryFindRev(ARev: string; out node: TLogNode):
+  end;
+
   TGraphForm = class(TForm)
     PageControl1: TPageControl;
     tabGraph: TTabSheet;
     tabGraphLog: TTabSheet;
-    graphPanel: TScrollBox;
+    graphPanel: TGraphPanel;
     graphMemo: TMemo;
     logoGraph: TVirtualStringTree;
     icons: TPngImageList;
@@ -27,9 +36,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
-    procedure hndShapeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure hndShapeMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure hndShapeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure graphPanelMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
       var Handled: Boolean);
     procedure cbxHideTrashClick(Sender: TObject);
@@ -38,13 +44,12 @@ type
     procedure logoGraphColumnWidthDblClickResize(Sender: TVTHeader; Column: TColumnIndex; Shift: TShiftState; P: TPoint;
       var Allowed: Boolean);
     procedure actFilterBranchesExecute(Sender: TObject);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
-    fdragging: Boolean;
-    fDragX: Integer;
-    fDragY: Integer;
     FVSTHelper: TVSTHelper<TlogNode>;
     FBranchesFilter: TBranchFilter;
+    FGraphNodes: TGraphNodes;
     fColResizing: Boolean;
 
     procedure hndPaintCell(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode; Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect; var DefaultDraw: boolean);
@@ -56,6 +61,11 @@ type
 
     function getMaxDynColIdx: integer;
     function CreateBranchCol(idx: integer; branchItem: TBranchFilterItem): TVirtualTreeColumn;
+
+  protected
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   public
     { Public declarations }
     procedure Execute(logNodes: TLogNodes);
@@ -71,7 +81,8 @@ uses
   repoHelper.CVS,
   DateUtils,
   Vcl.GraphUtil,
-  frmBranchesList;
+  frmBranchesList,
+  Math;
 
 const
   MAX_COLORS = 5;
@@ -122,6 +133,8 @@ begin
   FVSTHelper.OnDrawHeader := hndDrawHeader;
   FVSTHelper.OnAfterItemPaint := hndAfterItemPaint;
   FVSTHelper.TreeView := logoGraph;
+
+  FGraphNodes := TGraphNodes.Create;
 end;
 
 procedure TGraphForm.FormDestroy(Sender: TObject);
@@ -129,6 +142,12 @@ begin
   FVSTHelper.Model.Free;
   FVSTHelper.Free;
   FBranchesFilter.Free;
+  FGraphNodes.Free;
+end;
+
+procedure TGraphForm.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  //
 end;
 
 function TGraphForm.getMaxDynColIdx: integer;
@@ -140,7 +159,7 @@ procedure TGraphForm.graphPanelMouseWheel(Sender: TObject; Shift: TShiftState; W
   var Handled: Boolean);
 begin
   handled := true;
-  graphPanel.VertScrollBar.Position := graphPanel.VertScrollBar.Position - WheelDelta;
+//  graphPanel.VertScrollBar.Position := graphPanel.VertScrollBar.Position - WheelDelta;
 end;
 
 procedure TGraphForm.hndAfterItemPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode;
@@ -318,32 +337,6 @@ begin
   end;
 end;
 
-procedure TGraphForm.hndShapeMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fdragging := true;
-  TShape(Sender).Pen.Color := clRed;
-  fDragX := x;
-  fDragY := y;
-end;
-
-procedure TGraphForm.hndShapeMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-var
-  mp: TPoint;
-begin
-  if fdragging then
-  begin
-    mp := graphPanel.ScreenToClient(Mouse.CursorPos);
-    TShape(Sender).Left := mp.X - fDragX;
-    TShape(Sender).top := mp.Y - fDragY;
-  end;
-end;
-
-procedure TGraphForm.hndShapeMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  fdragging := false;
-  TShape(Sender).Pen.Color := clNavy;
-end;
-
 procedure TGraphForm.logoGraphColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 var
   i: Integer;
@@ -372,41 +365,97 @@ begin
 
 end;
 
+procedure TGraphForm.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+
+end;
+
+procedure TGraphForm.MouseMove(Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+
+end;
+
+procedure TGraphForm.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+
+end;
+
 procedure TGraphForm.prepareCVSStyleGraph(logNodes: TLogNodes);
 var
-  node: TLogNode;
-  col: Integer;
-  x: Integer;
-  y: Integer;
-  r: TRect;
-  shape: TGraphShape;
-//  sl: TStringList;
-begin
-  y := 50;
-//  sl := TStringList.Create;
-//  sl.Add('rev;date;branch;mergeFrom');
-  try
+  cols_y: TDictionary<integer, integer>;
+  branches: TList<string>;
+
+  procedure AddBranch(parentNode, node0: TLogNode; y0: integer);
+  var
+    node, lastNode: TLogNode;
+    shape: TGraphNode;
+    x, y, col: Integer;
+    shape1: TGraphNode;
+    mergeSource: TLogNode;
+
+  begin
+    // jeœli ju¿ przetwarzamy ten branch to pomijamy
+    if branches.IndexOf(node0.branch) >= 0 then
+      exit;
+
+    branches.Add(node0.branch);
+    col := node0.revision.CountChar('.') - 1;
+    x := 10 + col * 70;
+    if cols_y.TryGetValue(col, y) then
+      y := max(y, y0)
+    else
+      y := y0;
+
+    lastNode := node0;
+
     for node in logNodes do
     begin
-//      sl.Add(node.asString);
-      col := node.revision.CountChar('.');
-      x := col * 100;
-      y := y + 40;
-      r := Rect(x, y, x + 10, y +30);
-      if node.isTagOnly then
-        shape := TGraphBranch.Create(graphPanel, x, y, node.branch)
-      else
-        shape := TGraphNode.Create(graphPanel, x, y, node.revision);
+      // jeœli node zosta³ ju¿ dodany to pomijamy
+      if FGraphNodes.ContainsKey(node) then
+        continue;
 
-      shape.OnMouseDown := hndShapeMouseDown;
-      shape.OnMouseMove := hndShapeMouseMove;
-      shape.OnMouseUp := hndShapeMouseUp;
+      // sprawdzamy czy nie trzeba odbiæ z nowym branchem
+      if node.mergeFrom = lastNode.revision then
+        AddBranch(lastNode, node, y - 40);
+
+      // ale jeœli to nie ten branch to pomijamy
+      if (node.branch <> node0.branch)  then
+        continue;
+
+      if not FGraphNodes.TryGetValue(lastNode, shape1) then
+        shape1 := nil;
+
+      if node.isTagOnly then
+        shape := TGraphBranch.Create(graphPanel, x, y, node.branch, shape1)
+      else
+        shape := TGraphNode.Create(graphPanel, x, y, node.revision, shape1);
+
+      lastNode := node;
+      if (node.mergeFrom <> '') then
+      begin
+        if logNodes.tryFindRevision(node.mergeFrom, mergeSource) and FGraphNodes.TryGetValue(mergeSource, shape1) then
+          shape.MergeFrom(shape1);
+      end;
+
+      FGraphNodes.Add(node, shape);
+      y := y + 40;
+
+      cols_y.AddOrSetValue(col, y);
     end;
-  finally
-//    sl.SaveToFile('graph.csv');
-//    sl.Free;
   end;
 
+begin
+  cols_y := TDictionary<integer, integer>.Create();
+  branches := TList<string>.Create;
+  try
+    AddBranch(nil, logNodes[0], 10);
+  finally
+    cols_y.Free;
+    branches.Free;
+  end;
 end;
 
 procedure TGraphForm.prepareGitStyleGraph(logNodes: TLogNodes);
@@ -467,6 +516,13 @@ begin
       treeCol.Options := treeCol.Options + [coVisible]
   end;
 
+end;
+
+{ TGraphNodes }
+
+constructor TGraphNodes.Create;
+begin
+  inherited Create([]);
 end;
 
 end.

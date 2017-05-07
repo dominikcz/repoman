@@ -16,6 +16,7 @@ object GraphForm: TGraphForm
   OldCreateOrder = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnMouseDown = FormMouseDown
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
@@ -23,27 +24,25 @@ object GraphForm: TGraphForm
     Top = 0
     Width = 824
     Height = 524
-    ActivePage = tabGraphLog
+    ActivePage = tabGraph
     Align = alClient
     TabOrder = 0
     object tabGraph: TTabSheet
       Caption = 'Graph'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
-      object graphPanel: TScrollBox
+      object graphPanel: TGraphPanel
         Left = 0
         Top = 0
         Width = 816
         Height = 407
-        HorzScrollBar.Smooth = True
-        HorzScrollBar.Tracking = True
         VertScrollBar.Smooth = True
         VertScrollBar.Tracking = True
         Align = alClient
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BorderStyle = bsNone
+        Color = clWhite
+        ParentColor = False
         TabOrder = 0
-        OnMouseWheel = graphPanelMouseWheel
       end
       object graphMemo: TMemo
         Left = 0

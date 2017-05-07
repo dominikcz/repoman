@@ -12,7 +12,6 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
-  WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
   OnShortCut = FormShortCut
@@ -139,16 +138,23 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
-        ExplicitTop = 2
       end
     end
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar

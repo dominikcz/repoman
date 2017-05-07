@@ -119,7 +119,7 @@ type
     procedure hndDirGetText(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
     procedure hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
-
+    
     procedure PrepareIgnoreList(const dir: string);
 
     procedure RefreshCurrentListing;
@@ -299,6 +299,9 @@ begin
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
   FFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
   FFileListHelper.OnCompareNodes := hndFilesCompareNodes;
+
+  FFileListHelper.ZebraColor := clNone;
+
   FFileListHelper.Filtered := not actShowIgnored.Checked;
   FFileListHelper.Model := FFiles;
   FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;

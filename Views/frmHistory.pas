@@ -4,10 +4,11 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, VirtualTrees,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, VirtualTrees, Vcl.ComCtrls, System.Actions, Vcl.ActnList,
+  Vcl.StdActns, Vcl.Menus, Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup,
+  System.UITypes,
   repoHelper,
-  whizaxe.vstHelper, Vcl.ComCtrls, System.Actions, Vcl.ActnList, Vcl.StdActns, Vcl.Menus,
-  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup;
+  whizaxe.vstHelper;
 
 type
   THistoryForm = class(TForm)
