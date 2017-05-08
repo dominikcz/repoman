@@ -1,14 +1,20 @@
 program graphTest;
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
   Vcl.Dialogs,
   Vcl.Forms,
   frmGraph in 'Views\frmGraph.pas' {GraphForm},
   repoHelper.CVS in 'repoHelper.CVS.pas',
   Models.LogInfo in 'Models\Models.LogInfo.pas',
   Models.FileInfo in 'Models\Models.FileInfo.pas',
-  graph in 'graph.pas',
-  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm};
+  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm},
+  SimpleGraph in '3rdparty\simplegraph\SimpleGraph.pas',
+  SimpleGraphRepo in 'SimpleGraphRepo.pas';
 
 {$R *.res}
 

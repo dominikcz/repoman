@@ -16,7 +16,6 @@ object GraphForm: TGraphForm
   OldCreateOrder = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnMouseDown = FormMouseDown
   PixelsPerInch = 96
   TextHeight = 13
   object PageControl1: TPageControl
@@ -29,33 +28,46 @@ object GraphForm: TGraphForm
     TabOrder = 0
     object tabGraph: TTabSheet
       Caption = 'Graph'
-      object graphPanel: TGraphPanel
-        Left = 0
-        Top = 0
-        Width = 816
-        Height = 407
-        VertScrollBar.Smooth = True
-        VertScrollBar.Tracking = True
-        Align = alClient
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        Color = clWhite
-        ParentColor = False
-        TabOrder = 0
-      end
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object graphMemo: TMemo
         Left = 0
         Top = 407
         Width = 816
         Height = 89
         Align = alBottom
+        TabOrder = 0
+      end
+      object graphPanel: TSimpleGraph
+        Left = 0
+        Top = 0
+        Width = 816
+        Height = 407
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        HorzScrollBar.Smooth = True
+        HorzScrollBar.Tracking = True
+        ParentFont = False
+        ShowGrid = False
         TabOrder = 1
+        VertScrollBar.Smooth = True
+        VertScrollBar.Tracking = True
+        OnMouseWheel = graphPanelMouseWheel
       end
     end
     object tabGraphLog: TTabSheet
       Caption = 'Graph + log'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object logoGraph: TVirtualStringTree
         Left = 0
         Top = 0

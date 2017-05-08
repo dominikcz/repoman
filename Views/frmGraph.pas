@@ -8,7 +8,7 @@ uses
   System.ImageList, Vcl.ImgList, PngImageList, System.Actions, Vcl.ActnList, Vcl.Menus,
   Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup,
   Generics.Collections,
-  graph,
+  SimpleGraph, SimpleGraphRepo,
   whizaxe.VSTHelper,
   Models.LogInfo;
 
@@ -23,7 +23,6 @@ type
     PageControl1: TPageControl;
     tabGraph: TTabSheet;
     tabGraphLog: TTabSheet;
-    graphPanel: TGraphPanel;
     graphMemo: TMemo;
     logoGraph: TVirtualStringTree;
     icons: TPngImageList;
@@ -33,6 +32,7 @@ type
     PopupActionBar1: TPopupActionBar;
     filterbranches1: TMenuItem;
     Hideignored1: TMenuItem;
+    graphPanel: TSimpleGraph;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
 
@@ -44,7 +44,6 @@ type
     procedure logoGraphColumnWidthDblClickResize(Sender: TVTHeader; Column: TColumnIndex; Shift: TShiftState; P: TPoint;
       var Allowed: Boolean);
     procedure actFilterBranchesExecute(Sender: TObject);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     FVSTHelper: TVSTHelper<TlogNode>;
@@ -58,14 +57,10 @@ type
     procedure toggleDeadBranches;
     procedure prepareCVSStyleGraph(logNodes: TLogNodes);
     procedure prepareGitStyleGraph(logNodes: TLogNodes);
+    function isShiftPressed: boolean;
 
     function getMaxDynColIdx: integer;
     function CreateBranchCol(idx: integer; branchItem: TBranchFilterItem): TVirtualTreeColumn;
-
-  protected
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    procedure MouseMove(Shift: TShiftState; X, Y: Integer); override;
-    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   public
     { Public declarations }
     procedure Execute(logNodes: TLogNodes);
@@ -145,11 +140,6 @@ begin
   FGraphNodes.Free;
 end;
 
-procedure TGraphForm.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  //
-end;
-
 function TGraphForm.getMaxDynColIdx: integer;
 begin
   result := logoGraph.Header.Columns.Count - 4 - 1;
@@ -159,7 +149,10 @@ procedure TGraphForm.graphPanelMouseWheel(Sender: TObject; Shift: TShiftState; W
   var Handled: Boolean);
 begin
   handled := true;
-//  graphPanel.VertScrollBar.Position := graphPanel.VertScrollBar.Position - WheelDelta;
+  if isShiftPressed then
+    graphPanel.ChangeZoomBy(WheelDelta div 20, zoCursor)
+  else
+    graphPanel.VertScrollBar.Position := graphPanel.VertScrollBar.Position - WheelDelta;
 end;
 
 procedure TGraphForm.hndAfterItemPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Item: TLogNode;
@@ -337,6 +330,14 @@ begin
   end;
 end;
 
+function TGraphForm.isShiftPressed: boolean;
+var
+  virtKey: SmallInt;
+begin
+  virtKey := GetKeyState(VK_LSHIFT);
+  result := (virtKey and $8000) <> 0;
+end;
+
 procedure TGraphForm.logoGraphColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 var
   i: Integer;
@@ -362,25 +363,6 @@ begin
     sender.Columns[column].Width := 10
   else
     sender.Columns[column].Width := 25;
-
-end;
-
-procedure TGraphForm.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-
-end;
-
-procedure TGraphForm.MouseMove(Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-
-end;
-
-procedure TGraphForm.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-
 end;
 
 procedure TGraphForm.prepareCVSStyleGraph(logNodes: TLogNodes);
@@ -429,15 +411,18 @@ var
         shape1 := nil;
 
       if node.isTagOnly then
-        shape := TGraphBranch.Create(graphPanel, x, y, node.branch, shape1)
+        shape := TBranchNode.Create(graphPanel, x, y, node.branch)
       else
-        shape := TGraphNode.Create(graphPanel, x, y, node.revision, shape1);
+        shape := TCommitNode.Create(graphPanel, x, y, node.revision);
+
+      if shape1 <> nil then
+        graphPanel.InsertLink(shape1, shape, TParentLink);
 
       lastNode := node;
       if (node.mergeFrom <> '') then
       begin
         if logNodes.tryFindRevision(node.mergeFrom, mergeSource) and FGraphNodes.TryGetValue(mergeSource, shape1) then
-          shape.MergeFrom(shape1);
+          graphPanel.InsertLink(shape1, shape, TMergeLink);
       end;
 
       FGraphNodes.Add(node, shape);

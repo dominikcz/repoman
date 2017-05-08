@@ -1,13 +1,12 @@
 //TODO:
+// - dodawanie, usuwanie, update, commit, import
+// - code review
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
 // - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter?)
 // ~ pokazywanie tylko ró¿nic przy porównaniu
 // ~ log
-// ~ graf w stylu CVS
-// - dodawanie, usuwanie, update, commit, import
 // - tryb git
-// - code review
-// - operacje asychroniczne na repo
+// - operacje asychroniczne na repo i mo¿liwoœæ przerwania
 // - annotate z szukaniem w historii
 // - obs³uga git'a
 // - sprawdzanie pisowni
@@ -16,6 +15,8 @@
 // - BUG: po w³¹czeniu treeOptions.SelectionOptions.toRightClickSelect na liœcie plików mo¿na klikn¹c (lewym!) przez popup zmieniaj¹c selekcjê XD
 // - BUG: uzale¿nianie kolorów kolumn na grafie od column.Position jest tak samo bez sensu jak od column.Index. Przyda³by siê column.VisibleIndex.. mo¿e jest?
 // - BUG: przy rysowaniu headerka w VSTHelperze gubimy ewentualne checkboxy (jak w frmBranchesList.pas)
+// - BUG?: do przemyœlenia graph w CVS pokazywa³ branche jako dzieci, podczas gdy tak naprawdê to merge.
+//      Poza tym miejscami jest niespójnie: nie ma ani parenta ani merge... np. whizaxe.common - branch PROGRESS
 
 // DONE:
 // + porównanie plików
@@ -23,6 +24,7 @@
 // + prosty annotate
 // + historia z filtrami na: branch/usera/od daty/modu³
 // + graf w stylu GIT
+// + graf w stylu CVS
 
 unit dmRepo;
 

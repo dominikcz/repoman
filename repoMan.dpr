@@ -26,7 +26,8 @@ uses
   frmFileHistory in 'Views\frmFileHistory.pas' {FileHistoryForm},
   frmGraph in 'Views\frmGraph.pas' {GraphForm},
   Models.LogInfo in 'Models\Models.LogInfo.pas',
-  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm};
+  frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm},
+  SimpleGraph in '3rdparty\simplegraph\SimpleGraph.pas';
 
 {$R *.res}
 
