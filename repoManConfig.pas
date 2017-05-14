@@ -17,6 +17,12 @@ type
     ExternalEditor: string;
     UseExternalAnnotateEditor: boolean;
 
+    // repo
+    BackupModifiedFiles: boolean;
+
+    // GUI
+    ShowToolbarCaptions: boolean;
+
     constructor Create;
   end;
 
@@ -36,6 +42,8 @@ begin
   IgnoreCase := true;
   IgnoreBlanks := true;
   DiffOnWords := false;
+  ShowToolbarCaptions := true;
+  BackupModifiedFiles := true;
 
   ExternalEditor := '';
   UseExternalAnnotateEditor := false;
@@ -48,8 +56,15 @@ begin
   self.IgnoreBlanks := CfgFile.getBoolen('Diff.IgnoreBlanks', IgnoreBlanks);
   self.DiffOnWords := CfgFile.getBoolen('Diff.DiffOnWords', DiffOnWords);
 
+  // editors
   self.ExternalEditor := CfgFile.getString('Editors.ExternalEditor', ExternalEditor);
   self.UseExternalAnnotateEditor := CfgFile.getBoolen('Editors.UseExternalAnnotateEditor', UseExternalAnnotateEditor);
+
+  //repos
+  self.BackupModifiedFiles := CfgFile.getBoolen('Repos.BackupModifiedFiles', BackupModifiedFiles);
+
+  // GUI
+  self.ShowToolbarCaptions := CfgFile.getBoolen('GUI.ShowToolbarCaptions', ShowToolbarCaptions);
 
   if UseExternalDiff and (ExternalDiffPath = '') then
     UseExternalDiff := false;

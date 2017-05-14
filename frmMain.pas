@@ -55,6 +55,7 @@ begin
   repo;
   // BUG w delphi powoduje, ¿e czasem przypisanie znika z dfm
   ActionToolBar1.ActionManager.ActionBars[0].ActionBar := ActionToolBar1;
+  ActionToolBar1.AutoSizing := true;
 
   repo.actRefreshExecute(sender);
 end;

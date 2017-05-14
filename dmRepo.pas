@@ -2,7 +2,7 @@
 // - dodawanie, usuwanie, update, commit, import
 // - code review
 // - edycja plików przy porównaniu (akcje nawigacyjne, przenoszenie bloków)
-// - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter?)
+// - pokazywanie ró¿nic na poziomie s³ów/znaków (w³asny highlighter/markup?)
 // ~ pokazywanie tylko ró¿nic przy porównaniu
 // ~ log
 // - tryb git
@@ -83,6 +83,20 @@ type
     edit1: TMenuItem;
     actHistory: TAction;
     history1: TMenuItem;
+    actUpdateSelected: TAction;
+    actCommitSelected: TAction;
+    actUpdateAll: TAction;
+    actUpdateClean: TAction;
+    actCommitAll: TAction;
+    actImport: TAction;
+    update1: TMenuItem;
+    commit1: TMenuItem;
+    N2: TMenuItem;
+    updateall1: TMenuItem;
+    cleancopy1: TMenuItem;
+    commitall1: TMenuItem;
+    import1: TMenuItem;
+    actStop: TAction;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -100,6 +114,15 @@ type
     function tryGetSelectedItem(out item: TFileInfo): boolean;
     procedure actAnnotateExecute(Sender: TObject);
     procedure actGraphExecute(Sender: TObject);
+    procedure actUpdateSelectedExecute(Sender: TObject);
+    procedure actUpdateSelectedUpdate(Sender: TObject);
+    procedure actCommitSelectedUpdate(Sender: TObject);
+    procedure actCommitSelectedExecute(Sender: TObject);
+    procedure actUpdateAllExecute(Sender: TObject);
+    procedure actUpdateCleanExecute(Sender: TObject);
+    procedure actCommitAllExecute(Sender: TObject);
+    procedure actImportExecute(Sender: TObject);
+    procedure actUpdateCleanUpdate(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -209,6 +232,21 @@ begin
   end;
 end;
 
+procedure TRepo.actCommitAllExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actCommitSelectedExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actCommitSelectedUpdate(Sender: TObject);
+begin
+//
+end;
+
 procedure TRepo.actDiffExecute(Sender: TObject);
 var
   item: TFileInfo;
@@ -275,6 +313,11 @@ begin
   end;
 end;
 
+procedure TRepo.actImportExecute(Sender: TObject);
+begin
+//
+end;
+
 procedure TRepo.actRefreshExecute(Sender: TObject);
 begin
   FCurrRootPath := FRootPath;
@@ -295,6 +338,31 @@ begin
 
   item := FFileListHelper.SelectedItem;
   TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
+end;
+
+procedure TRepo.actUpdateAllExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actUpdateCleanExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actUpdateCleanUpdate(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actUpdateSelectedExecute(Sender: TObject);
+begin
+//
+end;
+
+procedure TRepo.actUpdateSelectedUpdate(Sender: TObject);
+begin
+//
 end;
 
 procedure TRepo.alRepoActionsExecute(Action: TBasicAction; var Handled: Boolean);
@@ -366,13 +434,19 @@ begin
   FCmdResult := TStringList.Create;
 
   for lAction in alRepoActions do
+  begin
+    if lAction.Hint = '' then
+      lAction.Hint := lAction.Caption;
     if lAction.ShortCut <> 0 then
     begin
       lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scShift));
       lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scAlt));
       lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scShift + scAlt));
     end;
+  end;
 
+  if not FConfig.ShowToolbarCaptions then
+    ActionManager1.ActionBars[0].Items.CaptionOptions := coNone;
 end;
 
 procedure TRepo.DataModuleDestroy(Sender: TObject);
