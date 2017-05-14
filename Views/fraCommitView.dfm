@@ -1,4 +1,4 @@
-object ViewCommit: TViewCommit
+object FrameCommitView: TFrameCommitView
   Left = 0
   Top = 0
   Width = 914

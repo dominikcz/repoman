@@ -42,6 +42,7 @@ type
     function annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer; overload;
     function annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string; useCache: boolean): integer; overload;
     function getOnLogging: TProc<string>;
+    function tryGetPrevRevision(sinceRev: string; out prevRev: string): boolean;
     procedure setOnLogging(Value: TProc<string>);
     property OnLogging: TProc<string> read getOnLogging write setOnLogging;
   end;

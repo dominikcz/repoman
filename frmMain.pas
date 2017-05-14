@@ -13,8 +13,8 @@ type
     tabRepoView: TTabSheet;
     tabCodeReview: TTabSheet;
     tabCommit: TTabSheet;
-    ViewFilesBrowser1: TViewFilesBrowser;
     ActionToolBar1: TActionToolBar;
+    ViewFilesBrowser1: TViewFilesBrowser;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);
@@ -51,6 +51,10 @@ begin
 
   Left := Screen.Monitors[preffMon].Left;
   Top := Screen.Monitors[preffMon].Top;
+
+  repo;
+  // BUG w delphi powoduje, ¿e czasem przypisanie znika z dfm
+  ActionToolBar1.ActionManager.ActionBars[0].ActionBar := ActionToolBar1;
 
   repo.actRefreshExecute(sender);
 end;

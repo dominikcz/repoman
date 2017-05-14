@@ -27,95 +27,6 @@ object MainForm: TMainForm
     TabOrder = 0
     object tabRepoView: TTabSheet
       Caption = 'Repo'
-      inline ViewFilesBrowser1: TViewFilesBrowser
-        Left = 0
-        Top = 26
-        Width = 1034
-        Height = 588
-        Align = alClient
-        TabOrder = 0
-        ExplicitTop = 26
-        ExplicitWidth = 1034
-        ExplicitHeight = 588
-        inherited Splitter1: TSplitter
-          Height = 372
-          ExplicitHeight = 439
-        end
-        inherited Splitter2: TSplitter
-          Top = 413
-          Width = 1034
-          ExplicitTop = 496
-          ExplicitWidth = 976
-        end
-        inherited Panel1: TPanel
-          Width = 1034
-          ExplicitWidth = 1034
-          inherited edtWorkingCopyPath: TEdit
-            Left = 5
-            Top = 8
-            ExplicitLeft = 5
-            ExplicitTop = 8
-          end
-        end
-        inherited log: TMemo
-          Top = 416
-          Width = 1034
-          Height = 172
-          Lines.Strings = ()
-          ExplicitTop = 416
-          ExplicitWidth = 1034
-          ExplicitHeight = 172
-        end
-        inherited dirTree: TVirtualStringTree
-          Height = 372
-          ExplicitHeight = 372
-        end
-        inherited fileList: TVirtualStringTree
-          Width = 831
-          Height = 372
-          Header.Height = 18
-          ExplicitLeft = 203
-          ExplicitTop = 41
-          ExplicitWidth = 831
-          ExplicitHeight = 372
-          Columns = <
-            item
-              Position = 0
-              Width = 200
-              WideText = 'file'
-              WideHint = 'fileName'
-            end
-            item
-              Position = 1
-              WideText = 'ext'
-              WideHint = 'ext'
-            end
-            item
-              Position = 2
-              Width = 397
-              WideText = 'path'
-              WideHint = 'shortPath'
-            end
-            item
-              Position = 3
-              Width = 81
-              WideText = 'state'
-              WideHint = 'stateAsStr'
-            end
-            item
-              Position = 4
-              Width = 75
-              WideText = 'revision'
-              WideHint = 'revision'
-            end
-            item
-              Position = 5
-              Width = 150
-              WideText = 'branch'
-              WideHint = 'branch'
-            end>
-        end
-      end
       object ActionToolBar1: TActionToolBar
         Left = 0
         Top = 0
@@ -139,22 +50,55 @@ object MainForm: TMainForm
         ShowHint = True
         Spacing = 5
       end
+      inline ViewFilesBrowser1: TViewFilesBrowser
+        Left = 0
+        Top = 26
+        Width = 1034
+        Height = 588
+        Align = alClient
+        TabOrder = 1
+        ExplicitTop = 26
+        ExplicitWidth = 1034
+        ExplicitHeight = 588
+        inherited Splitter1: TSplitter
+          Height = 455
+          ExplicitHeight = 455
+        end
+        inherited Splitter2: TSplitter
+          Top = 496
+          Width = 1034
+          ExplicitTop = 496
+          ExplicitWidth = 1034
+        end
+        inherited Panel1: TPanel
+          Width = 1034
+          ExplicitWidth = 1034
+        end
+        inherited log: TMemo
+          Top = 499
+          Width = 1034
+          ExplicitTop = 499
+          ExplicitWidth = 1034
+        end
+        inherited dirTree: TVirtualStringTree
+          Height = 455
+          ExplicitHeight = 455
+        end
+        inherited fileList: TVirtualStringTree
+          Width = 831
+          Height = 455
+          ExplicitWidth = 831
+          ExplicitHeight = 455
+        end
+      end
     end
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar

@@ -68,7 +68,7 @@ procedure TFrameEditor.codeEditorGutterGetText(Sender: TObject; aLine: Integer; 
 var
   idx: Integer;
 begin
-  if isUpdating then
+  if isUpdating or not enabled then
     exit;
   if Assigned(Diff) then
   begin

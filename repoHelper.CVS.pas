@@ -70,6 +70,7 @@ type
     function annotateFile(item: TFileInfo; sinceDate: TDateTime; out outputFile: string; useCache: boolean): integer; overload;
     function getOnLogging: TProc<string>;
     procedure setOnLogging(Value: TProc<string>);
+    function tryGetPrevRevision(sinceRev: string; out prevRev: string): boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -79,6 +80,7 @@ implementation
 
 uses
   System.IOUtils,
+  System.DateUtils,
   whizaxe.common,
   Generics.Defaults,
   whizaxe.processes;
@@ -213,6 +215,7 @@ var
   basePath: string;
   isRootInitialized: Boolean;
   s: string;
+  dt: TDateTime;
 begin
   FRootPath := root;
   isRootInitialized := false;
@@ -258,14 +261,14 @@ begin
         begin
           // /name/revision/timestamp[+conflict]/options/tagdate
           // np:
-          // /saleSupport.pas/1.48.14.1.6.6/Sun Mar 19 18:18:33 2017//TMcRESS
-          // /saleProcess.pas/1.185.12.8.6.2.2.34/Result of merge+Thu Apr  6 23:33:07 2017//TMcRESS  <- conflict
-          // /saleProcessPSP.pas/1.70.8.2.8.2.10.2/Result of merge//Tversions_7_3_1                  <- branch
-          // /SaleProcessEvents.pas/1.1.2.4/Sun Mar 19 18:18:32 2017//T1.1.2.4                       <- revision
-          // /SaleProcessOrlenConsts.pas/1.1.2.1/Tue Feb 21 12:12:17 2017//Taqq                      <- tag
-          // /McPOS_Icon.ico/0/dummy timestamp/-kb/TMcRESS                                           <- added
-          // /actionsMonitor.pas/1.3.8.1/Mon Nov 21 15:45:10 2016//Taqq                              <- modified
-          // /actionsMonitor.pas/-1.3.8.1.32.1/dummy timestamp//Taqq                                 <- removed
+          // /xxxxxxxxx.pas/1.48.14.1.6.6/Sun Mar 19 18:18:33 2017//TABCDEF
+          // /xxxxxxxxx.pas/1.185.12.8.6.2.2.34/Result of merge+Thu Apr  6 23:33:07 2017//TABCDEF  <- conflict
+          // /xxxxxxxxx.pas/1.70.8.2.8.2.10.2/Result of merge//TTEST_BRANCH                  <- branch
+          // /xxxxxxxxx.pas/1.1.2.4/Sun Mar 19 18:18:32 2017//T1.1.2.4                       <- revision
+          // /xxxxxxxxx.pas/1.1.2.1/Tue Feb 21 12:12:17 2017//Taqq                      <- tag
+          // /xxxxxxxxx.ico/0/dummy timestamp/-kb/TABCDEF                                           <- added
+          // /xxxxxxxxx.pas/1.3.8.1/Mon Nov 21 15:45:10 2016//Taqq                              <- modified
+          // /xxxxxxxxx.pas/-1.3.8.1.32.1/dummy timestamp//Taqq                                 <- removed
 
           tmp := line.Split(['/'], 6);
           item.state := fsNormal;
@@ -295,7 +298,8 @@ begin
               item.state := fsConflict;
               delete(tmp[3], 1, 1);
             end;
-            item.timestamp := DateTimeStrEval('ddd mmm dd hh:nn:ss yyyy', tmp[3], TFormatSettings.Invariant);
+            dt := DateTimeStrEval('ddd mmm dd hh:nn:ss yyyy', tmp[3], TFormatSettings.Invariant);
+            item.timestamp := TTimeZone.Local.ToLocalTime(dt);
           end;
           item.options := tmp[4];
           item.tagdate := tmp[5].Substring(1);
@@ -386,6 +390,26 @@ end;
 procedure TRepoHelperCVS.setOnLogging(Value: TProc<string>);
 begin
   fOnLogging := value;
+end;
+
+function TRepoHelperCVS.tryGetPrevRevision(sinceRev: string; out prevRev: string): boolean;
+var
+  tmp: TArray<string>;
+  lastIdx: Integer;
+  lastVal: Integer;
+begin
+  // TODO: to tak na szybko, ¿eby sprawdziæ GUI -
+  // docelowo trzeba pobraæ loga i przesuwaæ siê po grafie
+  tmp := sincerev.Split(['.']);
+  lastIdx := high(tmp);
+  lastVal := StrToIntDef(tmp[lastIdx], 0);
+  if lastVal > 1 then
+  begin
+    tmp[lastIdx] := IntToStr(lastVal - 1);
+    prevRev := String.join('.', tmp);
+    exit(true);
+  end;
+  result := false;
 end;
 
 procedure TRepoHelperCVS.updateDirsState(dirs: TDirsList);
@@ -570,6 +594,8 @@ begin
       if repoItem.name = FileInfo.fullPath then
       begin
         FileInfo.state := repoItem.state;
+        if (repoItem.state = fsNormal) and not SameDateTime(FileInfo.dt, repoItem.timestamp) then
+          FileInfo.state := fsModified;
         FileInfo.revision := repoItem.revision;
         FileInfo.branch := repoItem.tagdate;
         lastFound := lastRepoIdx;

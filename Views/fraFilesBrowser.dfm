@@ -118,7 +118,7 @@ object ViewFilesBrowser: TViewFilesBrowser
     Columns = <
       item
         Position = 0
-        Width = 10
+        Width = 215
         WideText = 'file'
         WideHint = 'fileName'
       end
@@ -129,7 +129,7 @@ object ViewFilesBrowser: TViewFilesBrowser
       end
       item
         Position = 2
-        Width = 450
+        Width = 473
         WideText = 'path'
         WideHint = 'shortPath'
       end
@@ -150,6 +150,12 @@ object ViewFilesBrowser: TViewFilesBrowser
         Width = 120
         WideText = 'branch'
         WideHint = 'branch'
+      end
+      item
+        Position = 6
+        Width = 120
+        WideText = 'mod. date'
+        WideHint = 'dtAsStr'
       end>
   end
 end

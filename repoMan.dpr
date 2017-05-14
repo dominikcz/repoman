@@ -11,7 +11,7 @@ uses
   fraFilesBrowser in 'Views\fraFilesBrowser.pas' {ViewFilesBrowser: TFrame},
   Models.FileInfo in 'Models\Models.FileInfo.pas',
   dmRepo in 'dmRepo.pas' {Repo: TDataModule},
-  fraCommitView in 'Views\fraCommitView.pas' {ViewCommit: TFrame},
+  fraCommitView in 'Views\fraCommitView.pas' {FrameCommitView: TFrame},
   repoHelper in 'repoHelper.pas',
   repoHelper.CVS in 'repoHelper.CVS.pas',
   frmDiff in 'Views\frmDiff.pas' {DiffForm},
@@ -27,7 +27,11 @@ uses
   frmGraph in 'Views\frmGraph.pas' {GraphForm},
   Models.LogInfo in 'Models\Models.LogInfo.pas',
   frmBranchesList in 'Views\frmBranchesList.pas' {BranchesListForm},
-  SimpleGraph in '3rdparty\simplegraph\SimpleGraph.pas';
+  SimpleGraph in '3rdparty\simplegraph\SimpleGraph.pas',
+  frmBlame in 'Views\frmBlame.pas' {BlameForm},
+  fraBlame in 'Views\fraBlame.pas' {BlameFrame: TFrame},
+  Models.BlameInfo in 'Models\Models.BlameInfo.pas',
+  fraDiff in 'Views\fraDiff.pas' {FrameDiff: TFrame};
 
 {$R *.res}
 

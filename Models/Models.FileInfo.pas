@@ -13,6 +13,7 @@ type
   TFileInfo = class
   private
     function getStateAsStr: string;
+    function getDtAsStr: string;
   public
     fileName: string;
     path: string;
@@ -25,6 +26,7 @@ type
     branch: string;
     constructor Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
     property stateAsStr: string read getStateAsStr;
+    property dtAsStr: string read getDtAsStr;
     function getTempFileName(const prefix: string = ''): string;
     function getFullPathWithoutRoot(ARoot: string): string;
   end;
@@ -83,15 +85,21 @@ const
 implementation
 
 uses
+  WinApi.Windows,
   System.Types,
   System.IOUtils,
   System.SysUtils,
+  System.DateUtils,
   Generics.Defaults,
-  Classes;
+  Classes,
+  whizaxe.common;
 
 { TFileInfo }
 
 constructor TFileInfo.Create(AFullPath: string; ARoot: string = ''; AState: TFileState = fsNormal);
+var
+  fileDt: TDateTime;
+  y, m, d, h, n, s, ms: Word;
 begin
   fullPath := AFullPath;
   fileName := TPath.GetFileName(AFullPath);
@@ -99,6 +107,16 @@ begin
   ext := TPath.GetExtension(AFullPath);
   shortPath := getFullPathWithoutRoot(ARoot);
   state := AState;
+  if WxU.GetFileModDate(AFullPath, fileDt) then
+  begin
+    DecodeDateTime(fileDt, y, m, d, h, n, s, ms);
+    self.dt := EncodeDateTime(y, m, d, h, n, s, 0);
+  end;
+end;
+
+function TFileInfo.getDtAsStr: string;
+begin
+  result := DateTimeToStr(dt);
 end;
 
 function TFileInfo.getFullPathWithoutRoot(ARoot: string): string;
@@ -155,7 +173,7 @@ var
 begin
   result := false;
   for lItem in self do
-    if item.fullPath = path then
+    if lItem.fullPath = path then
     begin
       item := lItem;
       exit(true);

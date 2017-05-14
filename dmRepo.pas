@@ -10,8 +10,8 @@
 // - annotate z szukaniem w historii
 // - obs³uga git'a
 // - sprawdzanie pisowni
+// - zabezpieczenie plików przed omy³kow¹ modyfikacj¹ coœ jak .#* w WinCvs na zmodyfikowanych plikach
 // - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
-// - BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
 // - BUG: po w³¹czeniu treeOptions.SelectionOptions.toRightClickSelect na liœcie plików mo¿na klikn¹c (lewym!) przez popup zmieniaj¹c selekcjê XD
 // - BUG: uzale¿nianie kolorów kolumn na grafie od column.Position jest tak samo bez sensu jak od column.Index. Przyda³by siê column.VisibleIndex.. mo¿e jest?
 // - BUG: przy rysowaniu headerka w VSTHelperze gubimy ewentualne checkboxy (jak w frmBranchesList.pas)
@@ -25,6 +25,7 @@
 // + historia z filtrami na: branch/usera/od daty/modu³
 // + graf w stylu GIT
 // + graf w stylu CVS
+// + BUG: status plików jest czasem niepoprawny (np. dmMainFormPosBase.pas - entries.Extra?)
 
 unit dmRepo;
 
@@ -112,6 +113,8 @@ type
     FConfig: TRepoManCfg;
     FShiftPressed: Boolean;
     function isShiftPressed: boolean;
+    function isAltPressed: boolean;
+    function isCtrlPressed: boolean;
     procedure hndFilesGetImageIndex(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure hndFilesCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
     procedure hndDirsGetImageIndex(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -121,11 +124,14 @@ type
     procedure hndDirGetText(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
     procedure hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
+
+    procedure hndGetAnnotate(AFilename, ARevision: string; out annFileName: string);
     
     procedure PrepareIgnoreList(const dir: string);
 
     procedure RefreshCurrentListing;
     function isVisible(item: TFileInfo): boolean;
+    function ExecDefaultAction(AValue: boolean): boolean;
   public
     { Public declarations }
     procedure CloseAllChildForms;
@@ -150,6 +156,7 @@ uses
   frmHistoryQuery,
   frmHistory,
   frmGraph,
+  frmBlame,
   Models.logInfo;
 
 var
@@ -181,10 +188,25 @@ var
   item: TFileInfo;
   outputFileName: string;
 begin
+  {$IFDEF ANNOTATE_TEST}
+    FFiles.tryToFind('c:\mccomp\NewPos2014\Whizaxe\whizaxe.common.pas', item);
+  {$ELSE}
   if not tryGetSelectedItem(item) then
     exit;
+  {$ENDIF}
   if FRepoHelper.annotateFile(item, '', outputFileName, not FShiftPressed) = 0 then
-    TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+outputFileName + '" "', '', 1);
+  begin
+    if ExecDefaultAction(FConfig.UseExternalAnnotateEditor) then
+      TProcesses.ExecBatch(FConfig.ExternalEditor, '"'+outputFileName + '" "', '', 1)
+    else
+    begin
+      blameForm := TBlameForm.Create(nil);
+      blameForm.OnGetAnnotate := hndGetAnnotate;
+      blameForm.Load(item.fullPath, outputFileName, item.revision);
+
+      forms.add(blameForm, 'Blame '+ExtractFileName(outputFileName)).Show;
+    end;
+  end;
 end;
 
 procedure TRepo.actDiffExecute(Sender: TObject);
@@ -197,7 +219,7 @@ begin
     exit;
   if FRepoHelper.diffFile(item, outputFileName, not FShiftPressed) = 0 then
   begin
-    if FConfig.UseExternalDiff then
+    if ExecDefaultAction(FConfig.UseExternalDiff) then
       TProcesses.ExecBatch(FConfig.ExternalDiffPath, '"'+outputFileName + '" "' + item.fullPath+'"', '', 1)
     else
     begin
@@ -346,8 +368,9 @@ begin
   for lAction in alRepoActions do
     if lAction.ShortCut <> 0 then
     begin
-      lShortCut := lAction.ShortCut + scShift;
-      lAction.SecondaryShortCuts.Add(ShortCutToText(lShortCut))
+      lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scShift));
+      lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scAlt));
+      lAction.SecondaryShortCuts.Add(ShortCutToText(lAction.ShortCut + scShift + scAlt));
     end;
 
 end;
@@ -364,6 +387,12 @@ begin
 
   FCmdResult.Free;
   FConfig.Free;
+end;
+
+function TRepo.ExecDefaultAction(AValue: boolean): boolean;
+begin
+  if isAltPressed then result := not AValue
+  else result := AValue;
 end;
 
 procedure TRepo.SingleFileActionUpdate(Sender: TObject);
@@ -458,6 +487,22 @@ begin
   end;
 end;
 
+procedure TRepo.hndGetAnnotate(AFilename, ARevision: string; out annFileName: string);
+var
+  item: TFileInfo;
+  rev: string;
+begin
+  item := TFileInfo.Create(AFileName, FRootPath, fsNormal);
+  if not FRepoHelper.tryGetPrevRevision(ARevision, rev) then
+  begin
+    annFileName := '';
+    exit;
+  end;
+  if FRepoHelper.annotateFile(item, rev, annFileName, true) <> 0 then
+    annFileName := '';
+  item.Free;
+end;
+
 procedure TRepo.hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
 begin
   FCurrRootPath := item.fullPath;
@@ -538,6 +583,22 @@ var
   virtKey: SmallInt;
 begin
   virtKey := GetKeyState(VK_LSHIFT);
+  result := (virtKey and $8000) <> 0;
+end;
+
+function TRepo.isAltPressed: boolean;
+var
+  virtKey: SmallInt;
+begin
+  virtKey := GetKeyState(VK_MENU);
+  result := (virtKey and $8000) <> 0;
+end;
+
+function TRepo.isCtrlPressed: boolean;
+var
+  virtKey: SmallInt;
+begin
+  virtKey := GetKeyState(VK_CONTROL);
   result := (virtKey and $8000) <> 0;
 end;
 
