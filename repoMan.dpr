@@ -31,7 +31,9 @@ uses
   frmBlame in 'Views\frmBlame.pas' {BlameForm},
   fraBlame in 'Views\fraBlame.pas' {BlameFrame: TFrame},
   Models.BlameInfo in 'Models\Models.BlameInfo.pas',
-  fraDiff in 'Views\fraDiff.pas' {FrameDiff: TFrame};
+  fraDiff in 'Views\fraDiff.pas' {FrameDiff: TFrame},
+  frmCommit in 'Views\frmCommit.pas' {FormCommit},
+  Models.IgnoreList in 'Models\Models.IgnoreList.pas';
 
 {$R *.res}
 

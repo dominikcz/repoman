@@ -31,6 +31,7 @@ object Repo: TRepo
       Caption = 'log'
       ImageIndex = 15
       ShortCut = 16460
+      OnExecute = actLogExecute
       OnUpdate = SingleFileActionUpdate
     end
     object actAnnotate: TAction
@@ -47,7 +48,7 @@ object Repo: TRepo
       OnUpdate = actAddUpdate
     end
     object actRemove: TAction
-      Category = 'repo'
+      Category = 'repo-write'
       Caption = 'remove'
       ImageIndex = 13
       OnUpdate = actRemoveUpdate
@@ -73,10 +74,10 @@ object Repo: TRepo
       ImageIndex = 23
       ShortCut = 16469
       OnExecute = actUpdateSelectedExecute
-      OnUpdate = actUpdateSelectedUpdate
+      OnUpdate = MultiSelectActionUpdate
     end
     object actCommitSelected: TAction
-      Category = 'repo'
+      Category = 'repo-write'
       Caption = 'commit'
       ImageIndex = 28
       ShortCut = 16461
@@ -88,22 +89,23 @@ object Repo: TRepo
       Caption = 'update all'
       ImageIndex = 22
       OnExecute = actUpdateAllExecute
+      OnUpdate = MultiSelectActionUpdate
     end
     object actUpdateClean: TAction
       Category = 'repo'
       Caption = 'clean copy'
       ImageIndex = 31
       OnExecute = actUpdateCleanExecute
-      OnUpdate = actUpdateCleanUpdate
+      OnUpdate = MultiSelectActionUpdate
     end
     object actCommitAll: TAction
-      Category = 'repo'
+      Category = 'repo-write'
       Caption = 'commit all'
       ImageIndex = 27
       OnExecute = actCommitAllExecute
     end
     object actImport: TAction
-      Category = 'repo'
+      Category = 'repo-write'
       Caption = 'import'
       OnExecute = actImportExecute
     end
@@ -112,18 +114,13 @@ object Repo: TRepo
       Caption = 'stop'
       ImageIndex = 32
     end
-  end
-  object alViewActions: TActionList
-    Images = toolbarIcons
-    Left = 225
-    Top = 80
     object actFlatMode: TAction
       Category = 'view'
       AutoCheck = True
       Caption = 'flat mode'
       Checked = True
       Hint = 'toggle flat mode'
-      ImageIndex = 0
+      ImageIndex = 33
       OnExecute = refreshView
     end
     object actModifiedOnly: TAction
@@ -131,7 +128,7 @@ object Repo: TRepo
       AutoCheck = True
       Caption = 'modified'
       Hint = 'toggle modified'
-      ImageIndex = 2
+      ImageIndex = 35
       OnExecute = refreshView
     end
     object actShowUnversioned: TAction
@@ -139,7 +136,7 @@ object Repo: TRepo
       AutoCheck = True
       Caption = 'unversioned'
       Hint = 'toggle unversioned'
-      ImageIndex = 3
+      ImageIndex = 36
       OnExecute = refreshView
     end
     object actShowIgnored: TAction
@@ -147,14 +144,14 @@ object Repo: TRepo
       AutoCheck = True
       Caption = 'ignored'
       Hint = 'toggle ignored'
-      ImageIndex = 4
+      ImageIndex = 37
       OnExecute = refreshView
     end
     object actRefresh: TAction
       Category = 'view'
       Caption = 'refresh'
       Hint = 'refresh'
-      ImageIndex = 5
+      ImageIndex = 38
       SecondaryShortCuts.Strings = (
         'Ctrl+R')
       ShortCut = 116
@@ -778,146 +775,7 @@ object Repo: TRepo
           01AB013F1F3F60B85F918D2CD40032603390E143A6015B40063C033224C934E0
           39550CA0D80B140622A5D10862519490C01C4A9332CC10B233133220353B0300
           D57F945F67DB49090000000049454E44AE426082}
-      end>
-    Left = 328
-    Top = 152
-    Bitmap = {}
-  end
-  object ActionManager1: TActionManager
-    ActionBars = <
-      item
-        Items.CaptionOptions = coAll
-        Items = <
-          item
-            Action = actFlatMode
-            Caption = '&flat mode'
-            ImageIndex = 0
-          end
-          item
-            Action = actModifiedOnly
-            Caption = '&modified'
-            ImageIndex = 2
-          end
-          item
-            Action = actShowIgnored
-            Caption = '&ignored'
-            ImageIndex = 4
-          end
-          item
-            Action = actShowUnversioned
-            Caption = '&unversioned'
-            ImageIndex = 3
-          end
-          item
-            Action = actRefresh
-            Caption = '&refresh'
-            ImageIndex = 5
-            ShortCut = 116
-          end
-          item
-            Caption = '-'
-          end
-          item
-            Action = actDiff
-            ImageIndex = 14
-            ShortCut = 16452
-          end
-          item
-            Action = actGraph
-            Caption = '&graph'
-            ImageIndex = 17
-            ShortCut = 16455
-          end
-          item
-            Action = actLog
-            Caption = '&log'
-            ImageIndex = 15
-            ShortCut = 16460
-          end
-          item
-            Action = actAnnotate
-            Caption = '&annotate/blame'
-            ImageIndex = 16
-          end
-          item
-            Action = actEdit
-            Caption = 'edi&t'
-            ImageIndex = 18
-            ShortCut = 16397
-          end
-          item
-            Action = actHistory
-            Caption = '&history'
-            ImageIndex = 30
-          end
-          item
-            Caption = '-'
-          end
-          item
-            Action = actAdd
-            Caption = 'a&dd'
-            ImageIndex = 12
-          end
-          item
-            Action = actRemove
-            Caption = 'r&emove'
-            ImageIndex = 13
-          end
-          item
-            Action = actUpdateSelected
-            Caption = 'u&pdate'
-            ImageIndex = 23
-            ShortCut = 16469
-          end
-          item
-            Action = actUpdateClean
-            Caption = 'clea&n copy'
-            ImageIndex = 31
-          end
-          item
-            Action = actCommitSelected
-            Caption = '&commit'
-            ImageIndex = 28
-            ShortCut = 16461
-          end
-          item
-            Caption = '-'
-          end
-          item
-            Action = actUpdateAll
-            ImageIndex = 22
-          end
-          item
-            Action = actCommitAll
-            Caption = 'c&ommit all'
-            ImageIndex = 27
-          end
-          item
-            Caption = '-'
-          end
-          item
-            Action = actStop
-            Caption = '&stop'
-            ImageIndex = 32
-          end>
-        ActionBar = MainForm.ActionToolBar1
-      end>
-    LinkedActionLists = <
-      item
-        ActionList = alViewActions
-        Caption = 'alViewActions'
       end
-      item
-        ActionList = alRepoActions
-        Caption = 'alRepoActions'
-      end>
-    Images = repoIcons
-    Left = 328
-    Top = 32
-    StyleName = 'Platform Default'
-  end
-  object toolbarIcons: TPngImageList
-    PngImages = <
       item
         Background = clWhite
         Name = 'flat'
@@ -1019,10 +877,191 @@ object Repo: TRepo
           6561746500323031372D30342D31355430353A30373A32332B30323A30302D00
           07390000002574455874646174653A6D6F6469667900323031372D30342D3135
           5431323A32363A34322B30323A30306B9788670000000049454E44AE426082}
+      end
+      item
+        Background = clWindow
+        Name = 'double_arrow_down'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          61000000017352474200AECE1CE900000006624B474400FF00FF00FFA0BDA793
+          000000097048597300000B1300000B1301009A9C18000001C34944415478DA63
+          FCFFFF3F03258011D900464646306D3EEFFA3420958945FDF493499A5920064C
+          1FD8006C1A67266A303CFB85D029C5C6C0903EFF0603D000467C06FC07690429
+          AC89D060B8FD0961802A1F0343CB0A220C006904292C0BD160B8F51161801A3F
+          0343D71A220C006904292CF0D360B8FE1E6180A62003C3844D441800D2085298
+          E1A9C170ED2DC2002D61068619DB893000A621DC4683E12E921794815E5879E4
+          063C364E246A64C10DB0987F031EFA5DC11A0C175E3230DC053AFFCB2F4414F3
+          B031322803BD6120CEC050B6F60603D000466403FE83344EDD7B8FE1E1875F0C
+          F140DBCF3FFFCDF0F9E75FB801BCECCC0C8692AC0C0B81AEF8FDEDD382B3D966
+          8970038CA79E9ACFCAC59710692CCBB0F6D875865FEC3C0C91E61A0C679E7C65
+          F8FCEB2F032F1B3383890C37C3F29337183E3FBDB7EE5AAD771C50DF57E430E0
+          D66ADEBA88575A2928584F9661C389AB0C7FB9F818828D5418AEBFFAC6A029C6
+          C5B0F6DC1D864F8F6E6DBADEE01F05D4F7155B20C20DF1D59464D8710EE8544E
+          7E860A170D868E3D375034E38C0564430AAC6419DAB79C61E01412C7D08CCF00
+          14433EDCBDBCE9666B583E50EC35B2664206800D81E2AFB834C200006D0811F0
+          588D2B590000002574455874646174653A63726561746500323031332D30342D
+          30375432303A35383A35352D30343A3030979D7A8A0000002574455874646174
+          653A6D6F6469667900323031332D30342D30375432303A35383A35352D30343A
+          3030E6C0C2360000000049454E44AE426082}
+      end
+      item
+        Background = clWindow
+        Name = 'double_arrow_up'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          61000000017352474200AECE1CE900000006624B474400FF00FF00FFA0BDA793
+          000000097048597300000B1300000B1301009A9C18000001C94944415478DAA5
+          D35F2843511C07F0EF8D894D885889D0A2BBA895FF0FF2A2BCF0E68190CC9BF1
+          E4514A4A1E3D08F364D2363C78509EBC284923562BDA22CDDF6544231BA1AEDF
+          B9DC7B7737E6C1A9DBB9F7DC7E9F737EE7770E270802FED33806701CA71AAC9B
+          F7CE52D74F8F75B7CF6889FE173B611C20052F9A79F4D87CD2F0AF900A9082C7
+          BB782CEDDCE0C81F4214A442E2002978B4838793824F2E4260D0551828D00123
+          0E35A202EA6D3E3178B88D6676DDC07F1D02838E1F81970F202D1928CB04C696
+          15241610A6BB7958B768D9343383BC0F40E443C9594B88311B9858FD425C66DE
+          220355337B368D36A3970D30E8F01E387F02C2EF0AA0D300451940450E3068F7
+          81002E7A0F284BE8ABE7DCA749296962407B038FD3470530500A2BDB5F55798F
+          3C2D1C0CD49AE3AA5063750B4D2599D80CBCA193004F50A9B949CFC14900E56F
+          A0CF20C5857F2AA3D06A2AC5BAE7046DB53CDC815719A8CC4FC5EA9E087089CE
+          81D05C5E8C8DA33330683F109681EA7C9D08FF095868E9B3B45406ED5E3E2B27
+          B4305D841302A6C92D7B6A566E177B6790F7362203C63CAD08270458B55835CA
+          C7D6A6D20BCB5A626FDE6BE8CEE1196AEC8E03E49B15037DF752631B12FCEE65
+          E013255107F06C31878E0000002574455874646174653A637265617465003230
+          31332D30342D30375432303A35383A35352D30343A3030979D7A8A0000002574
+          455874646174653A6D6F6469667900323031332D30342D30375432303A35383A
+          35352D30343A3030E6C0C2360000000049454E44AE426082}
       end>
-    Left = 232
-    Top = 208
+    Left = 328
+    Top = 152
     Bitmap = {}
+  end
+  object ActionManager1: TActionManager
+    ActionBars = <
+      item
+        Items.CaptionOptions = coAll
+        Items = <
+          item
+            Action = actFlatMode
+            Caption = '&flat mode'
+            ImageIndex = 33
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 35
+          end
+          item
+            Action = actShowUnversioned
+            Caption = 'un&versioned'
+            ImageIndex = 36
+          end
+          item
+            Action = actShowIgnored
+            Caption = 'igno&red'
+            ImageIndex = 37
+          end
+          item
+            Action = actRefresh
+            ImageIndex = 38
+            ShortCut = 116
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actDiff
+            Caption = 'd&iff'
+            ImageIndex = 14
+            ShortCut = 16452
+          end
+          item
+            Action = actGraph
+            Caption = '&graph'
+            ImageIndex = 17
+            ShortCut = 16455
+          end
+          item
+            Action = actLog
+            Caption = '&log'
+            ImageIndex = 15
+            ShortCut = 16460
+          end
+          item
+            Action = actAnnotate
+            Caption = '&annotate/blame'
+            ImageIndex = 16
+          end
+          item
+            Action = actEdit
+            Caption = 'edi&t'
+            ImageIndex = 18
+            ShortCut = 16397
+          end
+          item
+            Action = actHistory
+            Caption = '&history'
+            ImageIndex = 30
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actAdd
+            Caption = 'a&dd'
+            ImageIndex = 12
+          end
+          item
+            Action = actRemove
+            Caption = 'r&emove'
+            ImageIndex = 13
+          end
+          item
+            Action = actUpdateSelected
+            Caption = 'u&pdate'
+            ImageIndex = 23
+            ShortCut = 16469
+          end
+          item
+            Action = actUpdateClean
+            Caption = 'clea&n copy'
+            ImageIndex = 31
+          end
+          item
+            Action = actCommitSelected
+            Caption = '&commit'
+            ImageIndex = 28
+            ShortCut = 16461
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actUpdateAll
+            Caption = '&update all'
+            ImageIndex = 22
+          end
+          item
+            Action = actCommitAll
+            Caption = 'c&ommit all'
+            ImageIndex = 27
+          end
+          item
+            Caption = '-'
+          end
+          item
+            Action = actStop
+            Caption = '&stop'
+            ImageIndex = 32
+          end>
+      end>
+    LinkedActionLists = <
+      item
+        ActionList = alRepoActions
+        Caption = 'alRepoActions'
+      end>
+    Images = repoIcons
+    Left = 328
+    Top = 32
+    StyleName = 'Platform Default'
   end
   object popupRepoActions: TPopupActionBar
     Images = repoIcons
@@ -1074,6 +1113,29 @@ object Repo: TRepo
       Action = actCommitAll
     end
     object import1: TMenuItem
+      Action = actImport
+    end
+  end
+  object popupDirsActions: TPopupActionBar
+    Images = repoIcons
+    Left = 112
+    Top = 184
+    object MenuItem9: TMenuItem
+      Action = actRemove
+    end
+    object MenuItem10: TMenuItem
+      Action = actUpdateSelected
+    end
+    object MenuItem11: TMenuItem
+      Action = actUpdateClean
+    end
+    object MenuItem12: TMenuItem
+      Action = actCommitSelected
+    end
+    object MenuItem13: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem16: TMenuItem
       Action = actImport
     end
   end

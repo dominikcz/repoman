@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.Actions, Vcl.ActnList, Vcl.Buttons,
-  VirtualTrees, Vcl.ExtCtrls, Vcl.StdCtrls;
+  VirtualTrees, Vcl.ExtCtrls, Vcl.StdCtrls,
+  dmRepo, PngSpeedButton;
 
 type
   TFrameCommitView = class(TFrame)
@@ -15,24 +16,24 @@ type
     actUnstageAll: TAction;
     actStageSelected: TAction;
     actStageAll: TAction;
-    Panel1: TPanel;
-    commitMsg: TMemo;
     Splitter1: TSplitter;
     pnlUnstaged: TPanel;
     filterPanel: TPanel;
     unstagedFiles: TVirtualStringTree;
     pnlStaged: TPanel;
     stagingPanel: TPanel;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
     stagedFiles: TVirtualStringTree;
     Splitter2: TSplitter;
     Label1: TLabel;
     Label2: TLabel;
-    Button5: TButton;
     actCommit: TAction;
+    PngSpeedButton1: TPngSpeedButton;
+    PngSpeedButton2: TPngSpeedButton;
+    PngSpeedButton3: TPngSpeedButton;
+    PngSpeedButton4: TPngSpeedButton;
+    pnlCommit: TPanel;
+    commitMsg: TMemo;
+    Button5: TButton;
     cbLastMessages: TComboBox;
     procedure actCommitUpdate(Sender: TObject);
   private

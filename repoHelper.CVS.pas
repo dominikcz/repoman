@@ -72,6 +72,12 @@ type
     procedure setOnLogging(Value: TProc<string>);
     function tryGetPrevRevision(sinceRev: string; out prevRev: string): boolean;
 
+    function updateFiles(list: TFilesList; const cleanCopy: boolean = false): integer;
+    function updateDir(dir: TDirinfo; const cleanCopy: boolean = false): integer;
+    function updateAll(cleanCopy: boolean): integer;
+    function updateModule(moduleName: string; cleanCopy: boolean): integer;
+    function commit(list: TFilesList): integer;
+
     constructor Create;
     destructor Destroy; override;
   end;
@@ -104,6 +110,11 @@ begin
     params := '-D '+dateStr;
   end;
   result := doAnnotateFile(item, params, prefix, outputFile, useCache);
+end;
+
+function TRepoHelperCVS.commit(list: TFilesList): integer;
+begin
+
 end;
 
 function TRepoHelperCVS.annotateFile(item: TFileInfo; sinceRev: string; out outputFile: string; useCache: boolean): integer;
@@ -145,16 +156,25 @@ begin
 end;
 
 function TRepoHelperCVS.ExecCVSCmd(cmd, redirectTo: string): integer;
+var
+  sb: TStringBuilder;
 begin
   FLastCmdResult.Clear;
   notifyLogging('cvs '+cmd);
-  cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd +' > '+redirectTo;
-  result := TProcesses.ExecBatch('cmd /c', cmd, FRootPath);
-  if result <> 0 then
-  begin
-    notifyLogging('ERROR: '+IntToStr(result));
-    if FileExists(redirectTo) then
-      DeleteFile(redirectTo);
+  sb := TStringBuilder.Create;
+  try
+    sb.Append('cvs -d ').Append(FCVSROOT).Append(' ').Append(cmd);
+    if redirectTo <> '' then
+    sb.Append(' > ').Append(redirectTo);
+    result := TProcesses.ExecBatch('cmd /c', sb.ToString, FRootPath);
+    if result <> 0 then
+    begin
+      notifyLogging('ERROR: '+IntToStr(result));
+      if FileExists(redirectTo) then
+        DeleteFile(redirectTo);
+    end;
+  finally
+    sb.Free;
   end;
 end;
 
@@ -218,6 +238,7 @@ var
   dt: TDateTime;
 begin
   FRootPath := root;
+  FEntries.Clear;
   isRootInitialized := false;
   lList := TDirectory.GetDirectories(root, 'CVS', TSearchOption.soAllDirectories);
   sl := TStringList.Create;
@@ -322,7 +343,7 @@ var
   params: string;
   outputFile: string;
 begin
-  params := 'log "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := 'log ' + item.getFullPathWithoutRootForCmd(FRootPath);
   outputFile := item.getTempFileName('log_');
   result := 0;
   if not (useCache and FileExists(outputFile)) then
@@ -412,6 +433,24 @@ begin
   result := false;
 end;
 
+function TRepoHelperCVS.updateAll(cleanCopy: boolean): integer;
+begin
+
+end;
+
+function TRepoHelperCVS.updateDir(dir: TDirinfo; const cleanCopy: boolean = false): integer;
+var
+  cmd: TStringBuilder;
+begin
+  cmd := TStringBuilder.Create;
+  cmd.Append('update -P -d ');
+  if cleanCopy then
+    cmd.Append('-C');
+  cmd.Append(' -- ').Append(dir.shortPath);
+  result := ExecCVSCmd(cmd.ToString, '');
+  cmd.Free;
+end;
+
 procedure TRepoHelperCVS.updateDirsState(dirs: TDirsList);
 var
   dirInfo: TDirInfo;
@@ -445,7 +484,7 @@ function TRepoHelperCVS.diffFile(item: TFileInfo; out outputFile: string; useCac
 var
   params: string;
 begin
-  params := 'update -p -r '+item.revision + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := 'update -p -r '+item.revision + ' ' + item.getFullPathWithoutRootForCmd(FRootPath);
   outputFile := item.getTempFileName;
   result := 0;
   if not (useCache and FileExists(outputFile)) then
@@ -455,7 +494,7 @@ end;
 function TRepoHelperCVS.doAnnotateFile(item: TFileInfo; params, prefix: string; out outputFile: string; useCache: boolean): integer;
 begin
   outputFile := item.getTempFileName(prefix);
-  params := trim('annotate '+ params) + ' "' + item.getFullPathWithoutRoot(FRootPath)+'"';
+  params := trim('annotate '+ params) + ' ' + item.getFullPathWithoutRootForCmd(FRootPath);
   result := 0;
   if not (useCache and FileExists(outputFile)) then
     result := ExecCVSCmd(params, outputFile);
@@ -576,6 +615,24 @@ begin
 
 end;
 
+function TRepoHelperCVS.updateFiles(list: TFilesList; const cleanCopy: boolean = false): integer;
+var
+  item: TFileInfo;
+  cmd: TStringBuilder;
+begin
+  cmd := TStringBuilder.Create;
+  cmd.Append('update -P -d ');
+  if cleanCopy then
+    cmd.Append('-C');
+  cmd.Append(' -- ');
+  for item in list do
+  begin
+    cmd.Append(item.getFullPathWithoutRootForCmd(FRootPath)).Append(' ')
+  end;
+  result := ExecCVSCmd(cmd.ToString, '');
+  cmd.Free;
+end;
+
 procedure TRepoHelperCVS.updateFilesState(files: TFilesList);
 var
   FileInfo: TFileInfo;
@@ -604,6 +661,11 @@ begin
       inc(lastRepoIdx); // TODO: zoptymalizowaæ przez analizê œcie¿ki?
     until (lastRepoIdx >= max);
   end;
+end;
+
+function TRepoHelperCVS.updateModule(moduleName: string; cleanCopy: boolean): integer;
+begin
+
 end;
 
 { TCVSRevision }

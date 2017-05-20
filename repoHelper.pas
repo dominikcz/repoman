@@ -44,6 +44,13 @@ type
     function getOnLogging: TProc<string>;
     function tryGetPrevRevision(sinceRev: string; out prevRev: string): boolean;
     procedure setOnLogging(Value: TProc<string>);
+
+    function updateFiles(list: TFilesList; const cleanCopy: boolean = false): integer;
+    function updateDir(dir: TDirinfo; const cleanCopy: boolean = false): integer;
+    function updateAll(cleanCopy: boolean): integer;
+    function updateModule(moduleName: string; cleanCopy: boolean): integer;
+    function commit(list: TFilesList): integer;
+
     property OnLogging: TProc<string> read getOnLogging write setOnLogging;
   end;
 

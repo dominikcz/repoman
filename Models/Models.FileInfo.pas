@@ -10,6 +10,8 @@ type
   TFileState = (fsUnversioned, fsNormal, fsAdded, fsRemoved, fsModified, fsConflict);
   TDirState = (dsUnversioned, dsVersioned);
 
+  TFileStates = set of TFileState;
+
   TFileInfo = class
   private
     function getStateAsStr: string;
@@ -29,6 +31,7 @@ type
     property dtAsStr: string read getDtAsStr;
     function getTempFileName(const prefix: string = ''): string;
     function getFullPathWithoutRoot(ARoot: string): string;
+    function getFullPathWithoutRootForCmd(ARoot: string): string;
   end;
 
   TDirInfo = class
@@ -125,6 +128,13 @@ begin
     Result := fullPath.Substring(ARoot.Length + 1)
   else
     Result := fullPath;
+end;
+
+function TFileInfo.getFullPathWithoutRootForCmd(ARoot: string): string;
+begin
+  result := getFullPathWithoutRoot(ARoot);
+  if result.IndexOf(' ') > 0 then
+    result := '"'+result+'"';
 end;
 
 function TFileInfo.getStateAsStr: string;

@@ -1,5 +1,15 @@
 check - <div>Icons made by <a href="http://www.flaticon.com/authors/alfredo-hernandez" title="Alfredo Hernandez">Alfredo Hernandez</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 history-clock-button.png - <div>Icons made by <a href="http://www.flaticon.com/authors/google" title="Google">Google</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 stop - <div>Icons made by <a href="http://www.flaticon.com/authors/madebyoliver" title="Madebyoliver">Madebyoliver</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
-diff icons - from winmerge sources
-repo icons - from WinCVS and gitExtensions sources
+
+filelist.png, 
+itemlist.png, 
+smallico.png,
+tbFilter.png - from WinCvs sources (https://sourceforge.net/projects/cvsgui/files/WinCvs/WinCvs%202.1.1/WinCvsSrc2_1_1.zip/download)
+
+ToolbarEnabled.png - from WinMerge sources (https://sourceforge.net/projects/winmerge/files/stable/2.14.0/WinMerge-2.14.0-src.7z/download)
+
+up_arrow.png
+down_arrow.png 
+double_arrow_up.png
+double_arrow_down.png - from GitExtensions sources (https://github.com/gitextensions/gitextensions.git)

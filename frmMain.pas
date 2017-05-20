@@ -14,7 +14,7 @@ type
     tabCodeReview: TTabSheet;
     tabCommit: TTabSheet;
     ActionToolBar1: TActionToolBar;
-    ViewFilesBrowser1: TViewFilesBrowser;
+    repoBrowser: TViewFilesBrowser;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShortCut(var Msg: TWMKey; var Handled: Boolean);

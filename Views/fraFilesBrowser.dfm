@@ -78,6 +78,7 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Height = 18
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
     Images = Repo.repoIcons
+    PopupMenu = Repo.popupDirsActions
     TabOrder = 2
     TreeOptions.AnimationOptions = [toAnimatedToggle]
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]

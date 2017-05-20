@@ -6,11 +6,12 @@
 // ~ pokazywanie tylko ró¿nic przy porównaniu
 // ~ log
 // - tryb git
+// - trzeba za³o¿yæ watchera na plikach do wykrywania zmian i czêœciowej reinicjalizacji CVS/plików, na razie trzeba nacisn¹æ Ctrl+F5/F5
 // - operacje asychroniczne na repo i mo¿liwoœæ przerwania
 // - annotate z szukaniem w historii
 // - obs³uga git'a
 // - sprawdzanie pisowni
-// - zabezpieczenie plików przed omy³kow¹ modyfikacj¹ coœ jak .#* w WinCvs na zmodyfikowanych plikach
+// - zabezpieczenie plików (dla GIT) przed omy³kow¹ modyfikacj¹ coœ jak .#* w CVS na zmodyfikowanych plikach?
 // - BUG: powolne sortowanie: poprawiæ generics.sort lub inicjowaæ node i niech VST sortuje?
 // - BUG: po w³¹czeniu treeOptions.SelectionOptions.toRightClickSelect na liœcie plików mo¿na klikn¹c (lewym!) przez popup zmieniaj¹c selekcjê XD
 // - BUG: uzale¿nianie kolorów kolumn na grafie od column.Position jest tak samo bez sensu jak od column.Index. Przyda³by siê column.VisibleIndex.. mo¿e jest?
@@ -34,6 +35,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.Actions, System.Types,
   Vcl.ActnList, Vcl.Graphics,
+  Models.IgnoreList,
   Models.FileInfo,
   repoHelper,
   repoHelper.CVS,
@@ -52,19 +54,10 @@ uses
   ;
 
 type
-  TMatchType = (mtContains, mtEndsWith, mtStartsWith);
-
   TRepo = class(TDataModule)
     alRepoActions: TActionList;
-    alViewActions: TActionList;
-    actFlatMode: TAction;
-    actModifiedOnly: TAction;
-    actShowIgnored: TAction;
-    actRefresh: TAction;
     repoIcons: TPngImageList;
-    actShowUnversioned: TAction;
     ActionManager1: TActionManager;
-    toolbarIcons: TPngImageList;
     actDiff: TAction;
     actGraph: TAction;
     actLog: TAction;
@@ -97,6 +90,18 @@ type
     commitall1: TMenuItem;
     import1: TMenuItem;
     actStop: TAction;
+    popupDirsActions: TPopupActionBar;
+    MenuItem9: TMenuItem;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
+    MenuItem16: TMenuItem;
+    actFlatMode: TAction;
+    actModifiedOnly: TAction;
+    actShowUnversioned: TAction;
+    actShowIgnored: TAction;
+    actRefresh: TAction;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -104,6 +109,7 @@ type
     procedure refreshView(Sender: TObject);
     procedure actRefreshExecute(Sender: TObject);
     procedure SingleFileActionUpdate(Sender: TObject);
+    procedure MultiSelectActionUpdate(Sender: TObject);
     procedure actAddUpdate(Sender: TObject);
     procedure actDiffExecute(Sender: TObject);
     procedure actRemoveUpdate(Sender: TObject);
@@ -115,26 +121,27 @@ type
     procedure actAnnotateExecute(Sender: TObject);
     procedure actGraphExecute(Sender: TObject);
     procedure actUpdateSelectedExecute(Sender: TObject);
-    procedure actUpdateSelectedUpdate(Sender: TObject);
     procedure actCommitSelectedUpdate(Sender: TObject);
     procedure actCommitSelectedExecute(Sender: TObject);
     procedure actUpdateAllExecute(Sender: TObject);
     procedure actUpdateCleanExecute(Sender: TObject);
     procedure actCommitAllExecute(Sender: TObject);
     procedure actImportExecute(Sender: TObject);
-    procedure actUpdateCleanUpdate(Sender: TObject);
+    procedure actLogExecute(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
     FFiles: TFilesList;
     FDirs: TDirsList;
-    FIgnoreList: TStringList;
+    FIgnoreList: TIgnoreList;
     FCmdResult: TStringList;
     FRepoHelper: IRepoHelper;
     FDirHelper: TVSTHelperTree<TDirInfo>;
     FFileListHelper: TVSTHelper<TFileInfo>;
     FConfig: TRepoManCfg;
+    FStagedFiles: TFilesList;
     FShiftPressed: Boolean;
+
     function isShiftPressed: boolean;
     function isAltPressed: boolean;
     function isCtrlPressed: boolean;
@@ -146,15 +153,21 @@ type
     procedure hndDirInitNode(Sender: TBaseVirtualTree; Item: TDirInfo; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure hndDirGetText(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
+
+    procedure hndGetAvailableFiles(out list: TFilesList; const allowedStates: TFileStates);
+    procedure hndGetStagedFiles(out list: TFilesList);
+    procedure hndAddToIgnored(const mask: string);
+
     procedure hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
 
     procedure hndGetAnnotate(AFilename, ARevision: string; out annFileName: string);
-    
-    procedure PrepareIgnoreList(const dir: string);
 
     procedure RefreshCurrentListing;
-    function isVisible(item: TFileInfo): boolean;
+    function isVisible(item: TFileInfo; allowedStates: TFileStates): boolean;
     function ExecDefaultAction(AValue: boolean): boolean;
+    procedure DoActUpdate(ACleanCopy: boolean);
+
+    procedure backupFile(fileInfo: TFileInfo);
   public
     { Public declarations }
     procedure CloseAllChildForms;
@@ -180,13 +193,12 @@ uses
   frmHistory,
   frmGraph,
   frmBlame,
-  Models.logInfo;
+  Models.logInfo, frmCommit;
 
 var
   vRepo: TRepo;
 
 const
-  cIgnoreListFileName = 'ignorelist.repoman'; // DONT LOCALIZE
   cUsingCacheMsg = '*** %s: Using cache if available. Press Shift to bypass cache ***'#13#10;
 
 function Repo: TRepo;
@@ -233,8 +245,23 @@ begin
 end;
 
 procedure TRepo.actCommitAllExecute(Sender: TObject);
+var
+  commitForm: TFormCommit;
+  lAvailableFiles: TFilesList;
+  lStagedFiles: TFilesList;
+  allowedStates: TFileStates;
 begin
-//
+  commitForm := TFormCommit.Create(nil);
+  try
+    commitForm.OnGetAvailableFiles := hndGetAvailableFiles;
+    commitForm.OnGetStagedFiles := hndGetStagedFiles;
+    commitForm.OnAddToIgnored := hndAddToIgnored;
+
+    if commitForm.Execute then
+      FRepoHelper.commit(lStagedFiles);
+  finally
+    commitForm.Free;
+  end;
 end;
 
 procedure TRepo.actCommitSelectedExecute(Sender: TObject);
@@ -318,10 +345,18 @@ begin
 //
 end;
 
+procedure TRepo.actLogExecute(Sender: TObject);
+begin
+//
+end;
+
 procedure TRepo.actRefreshExecute(Sender: TObject);
 begin
   FCurrRootPath := FRootPath;
   FDirs.Reload(FRootPath);
+  if isCtrlPressed then
+    FRepoHelper.Init(FRootPath);
+
   FRepoHelper.updateDirsState(FDirs);
 
   FDirHelper.TreeView.Clear;
@@ -337,39 +372,37 @@ begin
   // TODO: multiselekcja
 
   item := FFileListHelper.SelectedItem;
-  TAction(Sender).Enabled := (item <> nil) and (item.state = fsUnversioned);
+  TAction(Sender).Enabled := (item <> nil) and (item.state = fsNormal);
 end;
 
 procedure TRepo.actUpdateAllExecute(Sender: TObject);
 begin
-//
+  FRepoHelper.updateAll(false);
 end;
 
 procedure TRepo.actUpdateCleanExecute(Sender: TObject);
 begin
-//
-end;
-
-procedure TRepo.actUpdateCleanUpdate(Sender: TObject);
-begin
-//
+  DoActUpdate(true);
 end;
 
 procedure TRepo.actUpdateSelectedExecute(Sender: TObject);
 begin
-//
-end;
-
-procedure TRepo.actUpdateSelectedUpdate(Sender: TObject);
-begin
-//
+  DoActUpdate(false);
 end;
 
 procedure TRepo.alRepoActionsExecute(Action: TBasicAction; var Handled: Boolean);
 begin
   FShiftPressed := isShiftPressed;
-  if not FShiftPressed then
-    MainForm.ViewFilesBrowser1.AddToLog(Format(cUsingCacheMsg, [TAction(Action).Caption]));
+  if (not FShiftPressed) and (TAction(Action).Category = 'repo') then
+    MainForm.repoBrowser.AddToLog(Format(cUsingCacheMsg, [TAction(Action).Caption]));
+end;
+
+procedure TRepo.backupFile(fileInfo: TFileInfo);
+var
+  path: string;
+begin
+  path := fileInfo.path + '.#'+fileInfo.fileName+'.'+fileInfo.revision;
+  RenameFile(fileInfo.fullPath, path);
 end;
 
 procedure TRepo.CloseAllChildForms;
@@ -386,7 +419,7 @@ begin
 
   FFiles := TFilesList.Create;
   FDirs := TDirsList.Create;
-  FIgnoreList := TStringList.Create;
+  FIgnoreList := TIgnoreList.Create(ExtractFileDir(paramStr(0)));
 
   FFileListHelper := TVSTHelper<TFileInfo>.Create;
   FFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
@@ -396,7 +429,7 @@ begin
 
   FFileListHelper.Filtered := not actShowIgnored.Checked;
   FFileListHelper.Model := FFiles;
-  FFileListHelper.TreeView :=  MainForm.ViewFilesBrowser1.fileList;
+  FFileListHelper.TreeView :=  MainForm.repoBrowser.fileList;
 
   FDirHelper := TVSTHelperTree<TDirInfo>.Create;
   FDirHelper.OnInitNode := hndDirInitNode;
@@ -405,7 +438,7 @@ begin
   FDirHelper.OnChange := hndOnChangeDir;
   FDirHelper.OnGetImageIndex := hndDirsGetImageIndex;
   FDirHelper.Model := FDirs;
-  FDirHelper.TreeView := MainForm.ViewFilesBrowser1.dirTree;
+  FDirHelper.TreeView := MainForm.repoBrowser.dirTree;
 
   {$IFDEF XPS}
   FRootPath := 'c:\mccomp\NewPos2014';
@@ -418,20 +451,22 @@ begin
   FRepoHelper := TRepoHelperCVS.Create;
   FRepoHelper.OnLogging := procedure(buff: string)
   begin
-    with MainForm.ViewFilesBrowser1 do
+    with MainForm.repoBrowser do
     begin
       AddToLog(buff);
     end;
   end;
   FRepoHelper.Init(FRootPath);
 
-  MainForm.ViewFilesBrowser1.RootPath := FRootPath;
-  MainForm.ViewFilesBrowser1.OnRootChange := hndChangeRootDir;
+  MainForm.repoBrowser.RootPath := FRootPath;
+  MainForm.repoBrowser.OnRootChange := hndChangeRootDir;
 
-  PrepareIgnoreList(ExtractFileDir(paramStr(0)));
+  FIgnoreList.Load;
   FFileListHelper.OnFiltered := hndVstFiltered;
 
   FCmdResult := TStringList.Create;
+
+  FStagedFiles := TFilesList.Create(false);
 
   for lAction in alRepoActions do
   begin
@@ -461,6 +496,16 @@ begin
 
   FCmdResult.Free;
   FConfig.Free;
+
+  FStagedFiles.Free;
+end;
+
+procedure TRepo.DoActUpdate(ACleanCopy: boolean);
+begin
+  if MainForm.ActiveControl = Mainform.repoBrowser.dirTree then
+    FRepoHelper.updateDir(FDirHelper.SelectedItem, ACleanCopy)
+  else
+    FRepoHelper.updateFiles(TFilesList(FFileListHelper.SelectedItems), ACleanCopy);
 end;
 
 function TRepo.ExecDefaultAction(AValue: boolean): boolean;
@@ -483,9 +528,14 @@ begin
   result := Assigned(item);
 end;
 
+procedure TRepo.hndAddToIgnored(const mask: string);
+begin
+  FIgnoreList.Add(mask);
+end;
+
 procedure TRepo.hndChangeRootDir(Sender: TObject);
 begin
-  FRootPath := MainForm.ViewFilesBrowser1.RootPath;
+  FRootPath := MainForm.repoBrowser.RootPath;
   FCurrRootPath := FRootPath;
 end;
 
@@ -577,6 +627,21 @@ begin
   item.Free;
 end;
 
+procedure TRepo.hndGetAvailableFiles(out list: TFilesList; const allowedStates: TFileStates);
+var
+  item: TFileInfo;
+begin
+  list := TFilesList.Create(false);
+  for item in FFiles do
+    if (item.state in allowedStates) and FIgnoreList.Accepts(item.fullPath) then
+      list.Add(item);
+end;
+
+procedure TRepo.hndGetStagedFiles(out list: TFilesList);
+begin
+  list := FStagedFiles;
+end;
+
 procedure TRepo.hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
 begin
   FCurrRootPath := item.fullPath;
@@ -585,16 +650,9 @@ end;
 
 procedure TRepo.hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort,
   Visible: boolean);
-begin
-  Visible := isVisible(item);
-end;
-
-function TRepo.isVisible(item: TFileInfo): boolean;
 var
-  allowedStates: set of TFileState;
+  allowedStates: TFileStates;
 begin
-  // ignored...
-  Result := _FilterModelByPath(item.fullPath);
   allowedStates := [fsNormal, fsAdded, fsRemoved, fsModified, fsConflict];
   // unversioned...
   if actShowUnversioned.Checked then
@@ -602,41 +660,22 @@ begin
   // modified...
   if actModifiedOnly.Checked and (not actShowIgnored.Checked) then
     Exclude(allowedStates, fsNormal);
+  Visible := isVisible(item, allowedStates);
+end;
+
+function TRepo.isVisible(item: TFileInfo; allowedStates: TFileStates): boolean;
+begin
+  // ignored...
+  Result := _FilterModelByPath(item.fullPath);
   Result := Result and (item.state in allowedStates);
 end;
 
-procedure TRepo.PrepareIgnoreList(const dir: string);
-var
-  fileName: string;
-  i: Integer;
-  s: string;
+procedure TRepo.MultiSelectActionUpdate(Sender: TObject);
 begin
-  fileName := TPath.Combine(dir, cIgnoreListFileName);
-  if not FileExists(fileName) then
-    fileName := TPath.Combine(ExtractFilePath(paramStr(0)), cIgnoreListFileName);
-
-  if FileExists(fileName) then
-  begin
-    FIgnoreList.LoadFromFile(fileName);
-    // "kompilujemy" filtry:
-    // *... => mtEndsWith
-    // ...* => mrStartsWith
-    // ... => mtContains
-    // konstrukcje typu ...*... czy *...* nie s¹ obslugiwane
-    for i := 0 to FIgnoreList.Count - 1 do
-    begin
-      s := FIgnoreList[i];
-      if s.StartsWith('*') then
-        FIgnoreList.Objects[i] := TObject(ord(mtEndsWith))
-      else if s.EndsWith('*') then
-        FIgnoreList.Objects[i] := TObject(ord(mtStartsWith))
-      else
-        FIgnoreList.Objects[i] := TObject(ord(mtContains));
-      FIgnoreList[i] := StringReplace(s, '*', '', [rfReplaceAll]);
-    end;
-  end
-  else
-    FIgnoreList.clear;
+  if MainForm.ActiveControl = Mainform.repoBrowser.dirTree then
+    TAction(Sender).Enabled := FDirHelper.SelectedCount > 0
+  else if MainForm.ActiveControl = Mainform.repoBrowser.fileList then
+    TAction(Sender).Enabled := FFileListHelper.SelectedCount > 0;
 end;
 
 procedure TRepo.RefreshCurrentListing;
@@ -677,28 +716,12 @@ begin
 end;
 
 function TRepo._FilterModelByPath(path: string): boolean;
-var
-  i: Integer;
-  s: string;
 begin
   // zwracamy false aby ukyæ bie¿¹cy element
   result := true;
   if actShowIgnored.Checked then
     exit;
-  for i := 0 to FIgnoreList.Count - 1 do
-  begin
-    s := FIgnoreList[i];
-    case TMatchType(FIgnoreList.Objects[i]) of
-      mtContains:
-        result := not path.ToLower.Contains(s.ToLower);
-      mtEndsWith:
-        result := not path.EndsWith(s, true);
-      mtStartsWith:
-        result := not path.StartsWith(s, true);
-    end;
-    if not result then
-      exit;
-  end;
+  result := FIgnoreList.Accepts(path);
 end;
 
 initialization

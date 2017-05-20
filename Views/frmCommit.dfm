@@ -1,20 +1,30 @@
-object FrameCommitView: TFrameCommitView
+object FormCommit: TFormCommit
   Left = 0
   Top = 0
-  Width = 914
-  Height = 651
-  TabOrder = 0
+  Caption = 'Commit'
+  ClientHeight = 705
+  ClientWidth = 1045
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 96
+  TextHeight = 13
   object leftPanel: TPanel
     Left = 0
     Top = 0
     Width = 449
-    Height = 651
+    Height = 705
     Align = alLeft
     BevelOuter = bvNone
     Caption = 'leftPanel'
     ShowCaption = False
     TabOrder = 0
-    ExplicitHeight = 612
     object Splitter1: TSplitter
       Left = 0
       Top = 238
@@ -28,7 +38,7 @@ object FrameCommitView: TFrameCommitView
     end
     object Splitter2: TSplitter
       Left = 0
-      Top = 462
+      Top = 516
       Width = 449
       Height = 3
       Cursor = crVSplit
@@ -73,6 +83,7 @@ object FrameCommitView: TFrameCommitView
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.SelectionOptions = [toMultiSelect]
         Columns = <
           item
             Position = 0
@@ -86,12 +97,11 @@ object FrameCommitView: TFrameCommitView
       Left = 0
       Top = 241
       Width = 449
-      Height = 221
+      Height = 275
       Align = alClient
       BevelOuter = bvNone
       Caption = 'pnlStaged'
       TabOrder = 1
-      ExplicitHeight = 259
       object stagingPanel: TPanel
         Left = 0
         Top = 0
@@ -153,7 +163,7 @@ object FrameCommitView: TFrameCommitView
         Left = 0
         Top = 40
         Width = 449
-        Height = 181
+        Height = 235
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -166,7 +176,7 @@ object FrameCommitView: TFrameCommitView
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        ExplicitHeight = 219
+        TreeOptions.SelectionOptions = [toMultiSelect]
         Columns = <
           item
             Position = 0
@@ -178,7 +188,7 @@ object FrameCommitView: TFrameCommitView
     end
     object pnlCommit: TPanel
       Left = 0
-      Top = 465
+      Top = 519
       Width = 449
       Height = 186
       Align = alBottom
@@ -186,9 +196,6 @@ object FrameCommitView: TFrameCommitView
       Caption = 'pnlCommit'
       ShowCaption = False
       TabOrder = 2
-      ExplicitLeft = -1
-      ExplicitTop = 344
-      ExplicitWidth = 450
       object commitMsg: TMemo
         AlignWithMargins = True
         Left = 0
@@ -202,22 +209,22 @@ object FrameCommitView: TFrameCommitView
         Align = alClient
         ScrollBars = ssBoth
         TabOrder = 0
-        ExplicitTop = 36
-        ExplicitHeight = 153
       end
-      object Button5: TButton
-        Left = 366
-        Top = 8
-        Width = 71
-        Height = 25
-        Action = actCommit
-        TabOrder = 1
-      end
-      object cbLastMessages: TComboBox
+      object cbPrevMessages: TComboBox
         Left = 10
         Top = 10
-        Width = 350
+        Width = 349
         Height = 21
+        TabOrder = 1
+        OnChange = cbPrevMessagesChange
+      end
+      object PngBitBtn1: TPngBitBtn
+        Left = 365
+        Top = 8
+        Width = 72
+        Height = 25
+        Action = actCommit
+        Caption = 'commit'
         TabOrder = 2
       end
     end
@@ -227,24 +234,27 @@ object FrameCommitView: TFrameCommitView
     Left = 256
     Top = 144
     object actUnstageSelected: TAction
-      Caption = #8599
       ImageIndex = 24
+      OnExecute = actUnstageSelectedExecute
+      OnUpdate = actUnstageSelectedUpdate
     end
     object actUnstageAll: TAction
-      Caption = #8663
       ImageIndex = 40
+      OnExecute = actUnstageAllExecute
     end
     object actStageSelected: TAction
-      Caption = #8600
       ImageIndex = 22
+      OnExecute = actStageSelectedExecute
+      OnUpdate = actStageSelectedUpdate
     end
     object actStageAll: TAction
-      Caption = #8664
       ImageIndex = 39
+      OnExecute = actStageAllExecute
     end
     object actCommit: TAction
       Caption = 'commit'
       ImageIndex = 27
+      OnExecute = actCommitExecute
       OnUpdate = actCommitUpdate
     end
   end
