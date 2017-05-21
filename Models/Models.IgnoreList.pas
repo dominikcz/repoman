@@ -14,11 +14,12 @@ type
       TMatchType = (mtContains, mtEndsWith, mtStartsWith);
   private
     FFileName: string;
-    FLoading: Boolean;
+    FDefFileName: string;
   public
-    constructor Create(const ADir: string);
-    procedure Load;
-    function Add(const S: string): Integer; override;
+    constructor Create;
+    procedure Load(const ADir: string = '');
+    procedure Compile;
+    procedure Save;
     function Allows(path: string): boolean;
   end;
 
@@ -52,65 +53,55 @@ begin
   end;
 end;
 
-function TIgnoreList.Add(const S: string): Integer;
-var
-  sl: TStringList;
-begin
-  if FLoading then
-  begin
-    inherited Add(s);
-    exit;
-  end;
-
-  sl := TStringList.Create;
-  try
-    if FileExists(FFileName) then
-      sl.LoadFromFile(FFileName);
-    result := sl.Add(S);
-    sl.SaveToFile(FFileName);
-    Load;
-  finally
-    sl.Free;
-  end;
-end;
-
-constructor TIgnoreList.Create(const ADir: string);
+constructor TIgnoreList.Create;
 begin
   inherited Create;
-  FFileName := TPath.Combine(ADir, cIgnoreListFileName);
-  if not FileExists(FFileName) then
-    FFileName := TPath.Combine(ExtractFilePath(paramStr(0)), cIgnoreListFileName);
+  FFileName := '';
+  FDefFileName := TPath.Combine(ExtractFilePath(paramStr(0)), cIgnoreListFileName);
 end;
 
-procedure TIgnoreList.Load;
+procedure TIgnoreList.Compile;
 var
   i: Integer;
   s: string;
 begin
+  // "kompilujemy" filtry:
+  // *... => mtEndsWith
+  // ...* => mrStartsWith
+  // ... => mtContains
+  // konstrukcje typu ...*... czy *...* nie s¹ obslugiwane
+  for i := 0 to Count - 1 do
+  begin
+    s := Strings[i];
+    if s.StartsWith('*') then
+      Objects[i] := TObject(ord(mtEndsWith))
+    else if s.EndsWith('*') then
+      Objects[i] := TObject(ord(mtStartsWith))
+    else
+      Objects[i] := TObject(ord(mtContains));
+    Strings[i] := StringReplace(s, '*', '', [rfReplaceAll]);
+  end;
+end;
+
+procedure TIgnoreList.Load(const ADir: string = '');
+begin
+  FFileName := TPath.Combine(ADir, cIgnoreListFileName);
+  if not FileExists(FFileName) then
+    FFileName := FDefFileName;
   if FileExists(FFileName) then
   begin
-    FLoading := true;
     self.LoadFromFile(FFileName);
-    // "kompilujemy" filtry:
-    // *... => mtEndsWith
-    // ...* => mrStartsWith
-    // ... => mtContains
-    // konstrukcje typu ...*... czy *...* nie s¹ obslugiwane
-    for i := 0 to Count - 1 do
-    begin
-      s := Strings[i];
-      if s.StartsWith('*') then
-        Objects[i] := TObject(ord(mtEndsWith))
-      else if s.EndsWith('*') then
-        Objects[i] := TObject(ord(mtStartsWith))
-      else
-        Objects[i] := TObject(ord(mtContains));
-      Strings[i] := StringReplace(s, '*', '', [rfReplaceAll]);
-    end;
-    FLoading := false;
+    self.Compile;
   end
   else
     self.Clear;
+end;
+
+procedure TIgnoreList.Save;
+begin
+  if FFileName = '' then
+    FFileName := FDefFileName;
+  SaveToFile(FFileName);
 end;
 
 end.

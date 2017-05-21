@@ -72,7 +72,8 @@ object FormCommit: TFormCommit
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         Header.SortColumn = 0
         Images = commonResources.repoIcons
-        Indent = 20
+        Indent = 22
+        PopupMenu = PopupActionBar1
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.SelectionOptions = [toMultiSelect]
@@ -325,6 +326,10 @@ object FormCommit: TFormCommit
       ShortCut = 116
       OnExecute = actRefreshExecute
     end
+    object actAddToIgnored: TAction
+      Caption = 'add to ignored'
+      OnUpdate = actAddToIgnoredUpdate
+    end
   end
   object ActionManager1: TActionManager
     ActionBars = <
@@ -334,6 +339,7 @@ object FormCommit: TFormCommit
         Items = <
           item
             Action = actRefresh
+            Caption = '&refresh'
             ImageIndex = 38
             ShortCut = 116
           end
@@ -363,5 +369,12 @@ object FormCommit: TFormCommit
     Left = 344
     Top = 184
     StyleName = 'Platform Default'
+  end
+  object PopupActionBar1: TPopupActionBar
+    Left = 120
+    Top = 96
+    object addtoignored1: TMenuItem
+      Action = actAddToIgnored
+    end
   end
 end

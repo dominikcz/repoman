@@ -34,7 +34,8 @@ uses
   fraDiff in 'Views\fraDiff.pas' {FrameDiff: TFrame},
   frmCommit in 'Views\frmCommit.pas' {FormCommit},
   Models.IgnoreList in 'Models\Models.IgnoreList.pas',
-  dmCommonResources in 'dmCommonResources.pas' {commonResources: TDataModule};
+  dmCommonResources in 'dmCommonResources.pas' {commonResources: TDataModule},
+  frmAddToIgnored in 'Views\frmAddToIgnored.pas' {AddToIgnoreForm};
 
 {$R *.res}
 

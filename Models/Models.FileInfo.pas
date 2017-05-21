@@ -51,6 +51,16 @@ type
     function contains(path: string): boolean;
   end;
 
+  TStagedFileList = class(TFilesList)
+  private
+    const
+      cStagedFilename = 'stagedFiles.repoman';
+  public
+    constructor Create;
+    procedure Load(parentList: TFilesList);
+    procedure Save;
+  end;
+
   TDirsList = class(TObjectList<TDirInfo>)
   public
     type
@@ -309,6 +319,56 @@ end;
 function TDirsList.TChildrenEnumerable.GetEnumerator: IWxEnumerator<TDirInfo>;
 begin
   result := TChildrenEnumerator.Create(FList, FRoot);
+end;
+
+{ TStagedFileList }
+
+constructor TStagedFileList.Create;
+begin
+  inherited Create(false);
+end;
+
+procedure TStagedFileList.Load(parentList: TFilesList);
+var
+  sl: TStringList;
+  s: string;
+  item: TFileInfo;
+begin
+  Clear;
+  if FileExists(cStagedFilename) then
+  begin
+    sl := TStringList.Create;
+    sl.LoadFromFile(cStagedFilename);
+    try
+      for s in sl do
+        if parentList.tryToFind(s, item) then
+          Add(item);
+    finally
+      sl.Free;
+    end;
+  end;
+end;
+
+procedure TStagedFileList.Save;
+var
+  item: TFileInfo;
+  sl: TStringList;
+begin
+  if self.Count > 0 then
+  begin
+    sl := TStringList.Create;
+    try
+      for item in self do
+        sl.Add(item.fullPath);
+      sl.SaveToFile(cStagedFilename);
+      Clear;
+    finally
+      sl.Free;
+    end;
+  end
+  else
+    if FileExists(cStagedFilename) then
+      DeleteFile(cStagedFilename);
 end;
 
 end.

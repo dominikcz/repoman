@@ -157,6 +157,12 @@ object Repo: TRepo
       ShortCut = 116
       OnExecute = actRefreshExecute
     end
+    object actIgnore: TAction
+      Category = 'repo'
+      Caption = 'add to ignored'
+      OnExecute = actIgnoreExecute
+      OnUpdate = MultiSelectActionUpdate
+    end
   end
   object ActionManager1: TActionManager
     ActionBars = <
@@ -339,6 +345,12 @@ object Repo: TRepo
     object import1: TMenuItem
       Action = actImport
     end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object addtoignored1: TMenuItem
+      Action = actIgnore
+    end
   end
   object popupDirsActions: TPopupActionBar
     Images = commonResources.repoIcons
@@ -361,6 +373,23 @@ object Repo: TRepo
     end
     object MenuItem16: TMenuItem
       Action = actImport
+    end
+  end
+  object popupRepoActionsSmall: TPopupActionBar
+    Images = commonResources.repoIcons
+    Left = 312
+    Top = 160
+    object MenuItem14: TMenuItem
+      Action = actRemove
+    end
+    object MenuItem17: TMenuItem
+      Action = actUpdateClean
+    end
+    object MenuItem19: TMenuItem
+      Caption = '-'
+    end
+    object addtoignored2: TMenuItem
+      Action = actIgnore
     end
   end
 end

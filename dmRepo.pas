@@ -34,8 +34,10 @@ unit dmRepo;
 interface
 
 uses
+  Vcl.Forms,
   System.SysUtils, System.Classes, System.Actions, System.Types,
   Vcl.ActnList, Vcl.Graphics,
+  Generics.Collections,
   dmCommonResources,
   Models.IgnoreList,
   Models.FileInfo,
@@ -103,6 +105,14 @@ type
     actShowUnversioned: TAction;
     actShowIgnored: TAction;
     actRefresh: TAction;
+    popupRepoActionsSmall: TPopupActionBar;
+    MenuItem14: TMenuItem;
+    MenuItem17: TMenuItem;
+    MenuItem19: TMenuItem;
+    N3: TMenuItem;
+    actIgnore: TAction;
+    addtoignored1: TMenuItem;
+    addtoignored2: TMenuItem;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
     procedure hndChangeRootDir(Sender: TObject);
@@ -129,6 +139,7 @@ type
     procedure actCommitAllExecute(Sender: TObject);
     procedure actImportExecute(Sender: TObject);
     procedure actLogExecute(Sender: TObject);
+    procedure actIgnoreExecute(Sender: TObject);
   private
     { Private declarations }
     FRootPath, FCurrRootPath: string;
@@ -140,7 +151,7 @@ type
     FVstDirHelper: TVSTHelperTree<TDirInfo>;
     FVstFileListHelper: TVSTHelper<TFileInfo>;
     FConfig: TRepoManCfg;
-    FStagedFiles: TFilesList;
+    FStagedFiles: TStagedFileList;
     FShiftPressed: Boolean;
 
     function isShiftPressed: boolean;
@@ -158,6 +169,7 @@ type
     procedure hndGetAvailableFiles(out list: TFilesList; const allowedStates: TFileStates);
     procedure hndGetStagedFiles(out list: TFilesList);
     procedure hndAddToIgnored(const mask: string);
+    procedure hndOnGetIgnorePreview(filter: TStrings; out list: TFilesList);
 
     procedure hndOnChangeDir(Sender: TBaseVirtualTree; Item: TDirInfo; Node: PVirtualNode);
 
@@ -169,6 +181,7 @@ type
     function isVisible(item: TFileInfo): boolean;
     function ExecDefaultAction(AValue: boolean): boolean;
     procedure DoActUpdate(ACleanCopy: boolean);
+    procedure doAddToIgnoreExecute(list: TObjectList<TFileInfo>);
 
     procedure backupFile(fileInfo: TFileInfo);
   public
@@ -196,7 +209,9 @@ uses
   frmHistory,
   frmGraph,
   frmBlame,
-  Models.logInfo, frmCommit;
+  Models.logInfo,
+  frmCommit,
+  frmAddtoIgnored;
 
 var
   vRepo: TRepo;
@@ -255,14 +270,15 @@ var
 begin
   commitForm := TFormCommit.Create(nil);
   try
+    FStagedFiles.Load(FFiles);
     commitForm.OnGetAvailableFiles := hndGetAvailableFiles;
     commitForm.OnGetStagedFiles := hndGetStagedFiles;
     commitForm.OnAddToIgnored := hndAddToIgnored;
-    commitForm.OnGetImageIndex := hndFilesGetImageIndex;
 
     if commitForm.Execute then
       FRepoHelper.commit(lStagedFiles);
   finally
+    FStagedFiles.Save;
     commitForm.Free;
   end;
 end;
@@ -341,6 +357,11 @@ begin
     forms.Add(histForm, 'History :: '+params.AsString);
     histForm.Execute(hist);
   end;
+end;
+
+procedure TRepo.actIgnoreExecute(Sender: TObject);
+begin
+  doAddToIgnoreExecute(FVstFileListHelper.SelectedItems);
 end;
 
 procedure TRepo.actImportExecute(Sender: TObject);
@@ -422,7 +443,8 @@ begin
 
   FFiles := TFilesList.Create;
   FDirs := TDirsList.Create;
-  FIgnoreList := TIgnoreList.Create(ExtractFileDir(paramStr(0)));
+  FIgnoreList := TIgnoreList.Create;
+  FIgnoreList.Load(ExtractFileDir(paramStr(0)));
 
   FVstFileListHelper := TVSTHelper<TFileInfo>.Create;
   FVstFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
@@ -469,7 +491,7 @@ begin
 
   FCmdResult := TStringList.Create;
 
-  FStagedFiles := TFilesList.Create(false);
+  FStagedFiles := TStagedFileList.Create;
 
   for lAction in alRepoActions do
   begin
@@ -511,12 +533,37 @@ begin
     FRepoHelper.updateFiles(TFilesList(FVstFileListHelper.SelectedItems), ACleanCopy);
 end;
 
+procedure TRepo.doAddToIgnoreExecute(list: TObjectList<TFileInfo>);
+var
+  AddIgnoredForm: TAddToIgnoreForm;
+  filter: string;
+  item: TFileInfo;
+begin
+  AddIgnoredForm := TAddToIgnoreForm.Create(nil);
+  try
+    AddIgnoredForm.mPatterns.Lines.BeginUpdate;
+    AddIgnoredForm.mPatterns.Clear;
+    for item in list do
+      AddIgnoredForm.mPatterns.Lines.Add(item.fullPath);
+    list.Free;
+    AddIgnoredForm.OnGetPreview := hndOnGetIgnorePreview;
+    if AddIgnoredForm.ShowModal = mrOk then
+    begin
+      FIgnoreList.AddStrings(AddIgnoredForm.mPatterns.Lines);
+      FIgnoreList.Compile;
+      FIgnoreList.Save;
+    end;
+  finally
+    AddIgnoredForm.Free;
+  end;
+end;
+
 function TRepo.doIsVisible(item: TFileInfo; allowedStates: TFileStates): boolean;
 begin
-  Result := Result and (item.state in allowedStates);
   // ignored...
-  if fsIgnored in allowedStates then
+  if not (fsIgnored in allowedStates) then
     Result := FIgnoreList.Allows(item.fullPath);
+  Result := Result and (item.state in allowedStates);
 end;
 
 function TRepo.ExecDefaultAction(AValue: boolean): boolean;
@@ -675,6 +722,27 @@ begin
   RefreshCurrentListing;
 end;
 
+procedure TRepo.hndOnGetIgnorePreview(filter: TStrings; out list: TFilesList);
+var
+  item: TFileInfo;
+  myIgnore: TIgnoreList;
+  i: Integer;
+begin
+  myIgnore := TIgnoreList.Create;
+  myIgnore.AddStrings(filter);
+  myIgnore.Compile;
+  list := TFilesList.Create(false);
+  i := 0;
+  for item in FFiles do
+  begin
+    if myIgnore.Allows(item.fullPath) then
+      list.Add(item);
+    inc(i);
+    if i >= 100 then
+      exit;
+  end;
+end;
+
 procedure TRepo.hndVstFiltered(Sender: TBaseVirtualTree; Item: TFileInfo; Node: PVirtualNode; var Abort,
   Visible: boolean);
 begin
@@ -687,11 +755,13 @@ begin
 end;
 
 procedure TRepo.MultiSelectActionUpdate(Sender: TObject);
+var
+  tree: TVirtualStringTree;
 begin
-  if MainForm.ActiveControl = Mainform.repoBrowser.dirTree then
-    TAction(Sender).Enabled := FVstDirHelper.SelectedCount > 0
-  else if MainForm.ActiveControl = Mainform.repoBrowser.fileList then
-    TAction(Sender).Enabled := FVstFileListHelper.SelectedCount > 0;
+  if not (Screen.ActiveForm.ActiveControl is TVirtualStringTree) then
+    exit;
+  tree := TVirtualStringTree(Screen.ActiveForm.ActiveControl);
+  TAction(Sender).Enabled := tree.SelectedCount > 0;
 end;
 
 procedure TRepo.RefreshCurrentListing;
