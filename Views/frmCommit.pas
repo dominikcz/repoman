@@ -5,17 +5,17 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, PngSpeedButton, VirtualTrees, Vcl.ExtCtrls,
-  System.Actions, Vcl.ActnList, PngBitBtn,
+  System.Actions, Vcl.ActnList, PngBitBtn, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.PlatformDefaultStyleActnCtrls,
   Models.FileInfo,
   whizaxe.VSTHelper;
 
 type
-  TGetStagedFilesListEvent = procedure(out list: TFilesList) of object;
   TGetAvailableFilesListEvent = procedure(out list: TFilesList; const allowedStates: TFileStates) of object;
+  TGetStagedFilesListEvent = procedure(out list: TFilesList) of object;
   TAddToIgnoredEvent = procedure(const mask: string) of object;
 
   TFormCommit = class(TForm)
-    ActionList1: TActionList;
+    alStaggingActions: TActionList;
     actUnstageSelected: TAction;
     actUnstageAll: TAction;
     actStageSelected: TAction;
@@ -25,8 +25,7 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     pnlUnstaged: TPanel;
-    filterPanel: TPanel;
-    unstagedFiles: TVirtualStringTree;
+    vstAvailableFiles: TVirtualStringTree;
     pnlStaged: TPanel;
     stagingPanel: TPanel;
     Label1: TLabel;
@@ -35,11 +34,18 @@ type
     PngSpeedButton2: TPngSpeedButton;
     PngSpeedButton3: TPngSpeedButton;
     PngSpeedButton4: TPngSpeedButton;
-    stagedFiles: TVirtualStringTree;
+    vstStagedFiles: TVirtualStringTree;
     pnlCommit: TPanel;
     commitMsg: TMemo;
     cbPrevMessages: TComboBox;
     PngBitBtn1: TPngBitBtn;
+    alFilterActions: TActionList;
+    actModifiedOnly: TAction;
+    actShowUnversioned: TAction;
+    actShowIgnored: TAction;
+    actRefresh: TAction;
+    ActionManager1: TActionManager;
+    ActionToolBar2: TActionToolBar;
     procedure actUnstageSelectedExecute(Sender: TObject);
     procedure actUnstageAllExecute(Sender: TObject);
     procedure actStageSelectedExecute(Sender: TObject);
@@ -51,26 +57,37 @@ type
     procedure cbPrevMessagesChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure refreshAvailable(Sender: TObject);
+    procedure actRefreshExecute(Sender: TObject);
   private
     { Private declarations }
-    FAvailableHelper: TVSTHelper<TFileInfo>;
-    FStagedHelper: TVSTHelper<TFileInfo>;
+    FVstAvailableHelper: TVSTHelper<TFileInfo>;
+    FVstStagedHelper: TVSTHelper<TFileInfo>;
     FOnGetAvailableFiles: TGetAvailableFilesListEvent;
     FOnGetStagedFiles: TGetStagedFilesListEvent;
     FAllowedStates: TFileStates;
     FOnAddToIgnored: TAddToIgnoredEvent;
+    FOnGetImageIndex: TVSTHelperBase<TFileInfo>.TGetImageIndexEvent;
     procedure Refresh;
+    procedure SetOnGetImageIndex(const Value: TVSTHelperBase<TFileInfo>.TGetImageIndexEvent);
+    procedure hndCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
+    procedure sort(tree: TBaseVirtualTree);
+    function getAllowedStates: TFileStates;
   public
     { Public declarations }
     function Execute: boolean;
     property OnGetAvailableFiles: TGetAvailableFilesListEvent read FOnGetAvailableFiles write FOnGetAvailableFiles;
     property OnGetStagedFiles: TGetStagedFilesListEvent read FOnGetStagedFiles write FOnGetStagedFiles;
     property OnAddToIgnored: TAddToIgnoredEvent read FOnAddToIgnored write FOnAddToIgnored;
+    property OnGetImageIndex: TVSTHelperBase<TFileInfo>.TGetImageIndexEvent read FOnGetImageIndex write SetOnGetImageIndex;
   end;
 
 implementation
 
 {$R *.dfm}
+
+uses
+  dmCommonResources;
 
 procedure TFormCommit.actCommitExecute(Sender: TObject);
 begin
@@ -79,13 +96,19 @@ end;
 
 procedure TFormCommit.actCommitUpdate(Sender: TObject);
 begin
-  actCommit.Enabled := (trim(commitMsg.Text) <> '') and (FStagedHelper.SelectedCount > 0);
+  actCommit.Enabled := (trim(commitMsg.Text) <> '') and (FVstStagedHelper.SelectedCount > 0);
+end;
+
+procedure TFormCommit.actRefreshExecute(Sender: TObject);
+begin
+//  OnGetAvailableFiles
 end;
 
 procedure TFormCommit.actStageAllExecute(Sender: TObject);
 begin
-  FStagedHelper.Model.AddRange(FAvailableHelper.Model);
-  FAvailableHelper.Model.Clear;
+  FVstStagedHelper.Model.AddRange(FVstAvailableHelper.Model);
+  FVstAvailableHelper.Model.Clear;
+  sort(vstStagedFiles);
 end;
 
 procedure TFormCommit.actStageSelectedExecute(Sender: TObject);
@@ -93,22 +116,23 @@ var
   tmp: TFilesList;
   item: TFileInfo;
 begin
-  tmp := TFilesList(FAvailableHelper.SelectedItems);
-  FStagedHelper.Model.AddRange(tmp);
+  tmp := TFilesList(FVstAvailableHelper.SelectedItems);
+  FVstStagedHelper.Model.AddRange(tmp);
   for item in tmp do
-    FAvailableHelper.Model.Remove(item);
-  Refresh;
+    FVstAvailableHelper.Model.Remove(item);
+  sort(vstStagedFiles);
 end;
 
 procedure TFormCommit.actStageSelectedUpdate(Sender: TObject);
 begin
-  actStageSelected.Enabled := FAvailableHelper.SelectedCount > 0;
+  actStageSelected.Enabled := FVstAvailableHelper.SelectedCount > 0;
 end;
 
 procedure TFormCommit.actUnstageAllExecute(Sender: TObject);
 begin
-  FAvailableHelper.Model.AddRange(FStagedHelper.Model);
-  FStagedHelper.Model.Clear;
+  FVstAvailableHelper.Model.AddRange(FVstStagedHelper.Model);
+  FVstStagedHelper.Model.Clear;
+  sort(vstAvailableFiles);
 end;
 
 procedure TFormCommit.actUnstageSelectedExecute(Sender: TObject);
@@ -116,16 +140,16 @@ var
   tmp: TFilesList;
   item: TFileInfo;
 begin
-  tmp := TFilesList(FStagedHelper.SelectedItems);
-  FAvailableHelper.Model.AddRange(tmp);
+  tmp := TFilesList(FVstStagedHelper.SelectedItems);
+  FVstAvailableHelper.Model.AddRange(tmp);
   for item in tmp do
-    FStagedHelper.Model.Remove(item);
-  Refresh;
+    FVstStagedHelper.Model.Remove(item);
+  sort(vstAvailableFiles);
 end;
 
 procedure TFormCommit.actUnstageSelectedUpdate(Sender: TObject);
 begin
-  actUnstageSelected.Enabled := FStagedHelper.SelectedCount > 0;
+  actUnstageSelected.Enabled := FVstStagedHelper.SelectedCount > 0;
 end;
 
 procedure TFormCommit.cbPrevMessagesChange(Sender: TObject);
@@ -143,38 +167,90 @@ begin
     raise Exception.Create('Event handler for OnGetAvailableFiles not set');
   if not Assigned(OnGetStagedFiles) then
     raise Exception.Create('Event handler for OnGetStagesFiles not set');
-  OnGetAvailableFiles(availableList, FAllowedStates);
+  OnGetAvailableFiles(availableList, getAllowedStates);
   OnGetStagedFiles(stagedList);
 
-  FAvailableHelper.Model := availableList;
-  FStagedHelper.Model := stagedList;
+  FVstAvailableHelper.Model := availableList;
+  FVstStagedHelper.Model := stagedList;
 
   result := ShowModal = mrOk;
 end;
 
 procedure TFormCommit.FormCreate(Sender: TObject);
 begin
-  FAvailableHelper := TVSTHelper<TFileInfo>.Create;
-  FAvailableHelper.TreeView := unstagedFiles;
-  FAvailableHelper.ZebraColor := clNone;
+  FVstAvailableHelper := TVSTHelper<TFileInfo>.Create;
+  FVstAvailableHelper.TreeView := vstAvailableFiles;
+  FVstAvailableHelper.ZebraColor := clNone;
+  FVstAvailableHelper.OnCompareNodes := hndCompareNodes;
 
-  FStagedHelper := TVSTHelper<TFileInfo>.Create;
-  FStagedHelper.TreeView := stagedFiles;
-  FStagedHelper.ZebraColor := clNone;
+  FVstAvailableHelper.Filtered := true;
+
+  FVstStagedHelper := TVSTHelper<TFileInfo>.Create;
+  FVstStagedHelper.TreeView := vstStagedFiles;
+  FVstStagedHelper.ZebraColor := clNone;
+  FVstStagedHelper.OnCompareNodes := hndCompareNodes;
 
   FAllowedStates := [fsUnversioned, fsModified, fsRemoved];
+
 end;
 
 procedure TFormCommit.FormDestroy(Sender: TObject);
 begin
-  FAvailableHelper.Free;
-  FStagedHelper.Free;
+  FVstAvailableHelper.Model.Free;
+  FVstAvailableHelper.Free;
+  FVstStagedHelper.Free;
+end;
+
+function TFormCommit.getAllowedStates: TFileStates;
+begin
+  Result := [fsNormal, fsAdded, fsRemoved, fsModified, fsConflict];
+  // unversioned...
+  if actShowUnversioned.Checked then
+    Include(Result, fsUnversioned);
+  // modified...
+  if actModifiedOnly.Checked and (not actShowIgnored.Checked) then
+    Exclude(Result, fsNormal);
+  // ignored...
+  if actShowIgnored.Checked then
+    include(Result, fsIgnored);
+end;
+
+procedure TFormCommit.hndCompareNodes(Item1, Item2: TFileInfo; Column: TColumnIndex; var Result: Integer);
+begin
+  case Column of
+    0: Result := AnsiCompareStr(item1.fullPath, item2.fullPath);
+    1: Result := Ord(item1.state) - Ord(item2.state);
+  end;
 end;
 
 procedure TFormCommit.Refresh;
 begin
-  FAvailableHelper.RefreshView;
-  FStagedHelper.RefreshView;
+  FVstAvailableHelper.RefreshView;
+  FVstStagedHelper.RefreshView;
+end;
+
+procedure TFormCommit.refreshAvailable(Sender: TObject);
+var
+  availableList: TFilesList;
+begin
+  OnGetAvailableFiles(availableList, getAllowedStates);
+  FVstAvailableHelper.Model.Free;
+  FVstAvailableHelper.Model := availableList;
+end;
+
+procedure TFormCommit.SetOnGetImageIndex(const Value: TVSTHelperBase<TFileInfo>.TGetImageIndexEvent);
+begin
+  FOnGetImageIndex := Value;
+  FVstAvailableHelper.OnGetImageIndex := Value;
+  FVstStagedHelper.OnGetImageIndex := Value;
+end;
+
+procedure TFormCommit.sort(tree: TBaseVirtualTree);
+begin
+  tree.Header.SortColumn := -1;
+  tree.Header.SortColumn := 0;
+  tree.SortTree(0, tree.Header.SortDirection);
+  Refresh;
 end;
 
 end.

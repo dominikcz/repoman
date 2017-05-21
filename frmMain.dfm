@@ -25,10 +25,8 @@ object MainForm: TMainForm
     ActivePage = tabRepoView
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 1322
     object tabRepoView: TTabSheet
       Caption = 'Repo'
-      ExplicitWidth = 1314
       object ActionToolBar1: TActionToolBar
         Left = 0
         Top = 0
@@ -51,8 +49,6 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         Spacing = 5
-        ExplicitWidth = 1314
-        ExplicitHeight = 54
       end
       inline repoBrowser: TViewFilesBrowser
         Left = 0
@@ -62,7 +58,7 @@ object MainForm: TMainForm
         Align = alClient
         TabOrder = 1
         ExplicitTop = 26
-        ExplicitWidth = 1314
+        ExplicitWidth = 1437
         ExplicitHeight = 588
         inherited Splitter1: TSplitter
           Height = 455
@@ -76,14 +72,13 @@ object MainForm: TMainForm
         end
         inherited Panel1: TPanel
           Width = 1437
-          ExplicitTop = -6
           ExplicitWidth = 1437
         end
         inherited log: TMemo
           Top = 499
           Width = 1437
           ExplicitTop = 499
-          ExplicitWidth = 1314
+          ExplicitWidth = 1437
         end
         inherited dirTree: TVirtualStringTree
           Height = 455
@@ -92,7 +87,7 @@ object MainForm: TMainForm
         inherited fileList: TVirtualStringTree
           Width = 1234
           Height = 455
-          ExplicitWidth = 1111
+          ExplicitWidth = 1234
           ExplicitHeight = 455
         end
       end
@@ -100,12 +95,18 @@ object MainForm: TMainForm
     object tabCommit: TTabSheet
       Caption = 'Commit'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 1314
+      ExplicitHeight = 0
     end
     object tabCodeReview: TTabSheet
       Caption = 'Code review'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
       ExplicitWidth = 1314
+      ExplicitHeight = 0
     end
   end
   object StatusBar1: TStatusBar
@@ -114,6 +115,5 @@ object MainForm: TMainForm
     Width = 1445
     Height = 19
     Panels = <>
-    ExplicitWidth = 1322
   end
 end

@@ -77,7 +77,7 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Font.Style = []
     Header.Height = 18
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-    Images = Repo.repoIcons
+    Images = commonResources.repoIcons
     PopupMenu = Repo.popupDirsActions
     TabOrder = 2
     TreeOptions.AnimationOptions = [toAnimatedToggle]
@@ -108,7 +108,7 @@ object ViewFilesBrowser: TViewFilesBrowser
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-    Images = Repo.repoIcons
+    Images = commonResources.repoIcons
     Indent = 20
     PopupMenu = Repo.popupRepoActions
     TabOrder = 3

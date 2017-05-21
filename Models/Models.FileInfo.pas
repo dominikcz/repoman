@@ -7,7 +7,7 @@ uses
   whizaxe.collections;
 
 type
-  TFileState = (fsUnversioned, fsNormal, fsAdded, fsRemoved, fsModified, fsConflict);
+  TFileState = (fsUnversioned, fsNormal, fsAdded, fsRemoved, fsModified, fsConflict, fsIgnored);
   TDirState = (dsUnversioned, dsVersioned);
 
   TFileStates = set of TFileState;
@@ -48,6 +48,7 @@ type
   public
     procedure Reload(rootPath: string; flatMode: boolean);
     function tryToFind(path: string; out item: TFileInfo): boolean;
+    function contains(path: string): boolean;
   end;
 
   TDirsList = class(TObjectList<TDirInfo>)
@@ -83,7 +84,7 @@ type
   end;
 
 const
-  FileStateStr: array[TFileState] of string = ('unversioned', 'normal', 'added', 'removed', 'modified', 'conflict');
+  FileStateStr: array[TFileState] of string = ('unversioned', 'normal', 'added', 'removed', 'modified', 'conflict', 'ignored');
 
 implementation
 
@@ -154,6 +155,13 @@ begin
 end;
 
 { TFilesList }
+
+function TFilesList.contains(path: string): boolean;
+var
+  lItem: TFileInfo;
+begin
+  result := tryToFind(path, lItem);
+end;
 
 procedure TFilesList.Reload(rootPath: string; flatMode: boolean);
 var

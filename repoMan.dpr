@@ -33,7 +33,8 @@ uses
   Models.BlameInfo in 'Models\Models.BlameInfo.pas',
   fraDiff in 'Views\fraDiff.pas' {FrameDiff: TFrame},
   frmCommit in 'Views\frmCommit.pas' {FormCommit},
-  Models.IgnoreList in 'Models\Models.IgnoreList.pas';
+  Models.IgnoreList in 'Models\Models.IgnoreList.pas',
+  dmCommonResources in 'dmCommonResources.pas' {commonResources: TDataModule};
 
 {$R *.res}
 

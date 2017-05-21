@@ -19,10 +19,10 @@ type
     fileList: TVirtualStringTree;
     procedure edtWorkingCopyPathChange(Sender: TObject);
   private
+    { Private declarations }
     FRootPath: string;
     FOnRootChange: TNotifyEvent;
     procedure SetRootPath(const Value: string);
-    { Private declarations }
 
   public
     { Public declarations }
@@ -36,7 +36,7 @@ implementation
 {$R *.dfm}
 
 uses
-  dmRepo;
+  dmCommonResources;
 
 { TViewFilesBrowser }
 

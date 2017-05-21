@@ -19,7 +19,7 @@ type
     constructor Create(const ADir: string);
     procedure Load;
     function Add(const S: string): Integer; override;
-    function Accepts(path: string): boolean;
+    function Allows(path: string): boolean;
   end;
 
 implementation
@@ -30,7 +30,7 @@ uses
 
 { TIgnoreList }
 
-function TIgnoreList.Accepts(path: string): boolean;
+function TIgnoreList.Allows(path: string): boolean;
 var
   i: Integer;
   s: string;

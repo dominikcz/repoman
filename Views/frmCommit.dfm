@@ -55,22 +55,11 @@ object FormCommit: TFormCommit
       BevelOuter = bvNone
       Caption = 'pnlUnstaged'
       TabOrder = 0
-      object filterPanel: TPanel
+      object vstAvailableFiles: TVirtualStringTree
         Left = 0
-        Top = 0
+        Top = 26
         Width = 449
-        Height = 41
-        Align = alTop
-        BevelOuter = bvNone
-        Caption = 'filterPanel'
-        ShowCaption = False
-        TabOrder = 0
-      end
-      object unstagedFiles: TVirtualStringTree
-        Left = 0
-        Top = 41
-        Width = 449
-        Height = 197
+        Height = 212
         Align = alClient
         BevelInner = bvNone
         BevelOuter = bvNone
@@ -81,16 +70,45 @@ object FormCommit: TFormCommit
         Header.Font.Name = 'Tahoma'
         Header.Font.Style = []
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-        TabOrder = 1
+        Header.SortColumn = 0
+        Images = commonResources.repoIcons
+        Indent = 20
+        TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.SelectionOptions = [toMultiSelect]
         Columns = <
           item
             Position = 0
-            Width = 400
+            Width = 381
             WideText = 'available files'
             WideHint = 'shortPath'
+          end
+          item
+            Position = 1
+            Width = 55
+            WideText = 'state'
+            WideHint = 'stateAsStr'
           end>
+      end
+      object ActionToolBar2: TActionToolBar
+        Left = 0
+        Top = 0
+        Width = 449
+        Height = 26
+        ActionManager = ActionManager1
+        Caption = 'ActionToolBar2'
+        Color = clMenuBar
+        ColorMap.DisabledFontColor = 7171437
+        ColorMap.HighlightColor = clWhite
+        ColorMap.BtnSelectedFont = clBlack
+        ColorMap.UnusedColor = clWhite
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        Spacing = 0
       end
     end
     object pnlStaged: TPanel
@@ -159,7 +177,7 @@ object FormCommit: TFormCommit
           Action = actStageAll
         end
       end
-      object stagedFiles: TVirtualStringTree
+      object vstStagedFiles: TVirtualStringTree
         Left = 0
         Top = 40
         Width = 449
@@ -174,15 +192,24 @@ object FormCommit: TFormCommit
         Header.Font.Name = 'Tahoma'
         Header.Font.Style = []
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+        Header.SortColumn = 0
+        Images = commonResources.repoIcons
+        Indent = 20
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.SelectionOptions = [toMultiSelect]
         Columns = <
           item
             Position = 0
-            Width = 400
+            Width = 381
             WideText = 'staged files'
             WideHint = 'shortPath'
+          end
+          item
+            Position = 1
+            Width = 58
+            WideText = 'state'
+            WideHint = 'stateAsStr'
           end>
       end
     end
@@ -229,8 +256,8 @@ object FormCommit: TFormCommit
       end
     end
   end
-  object ActionList1: TActionList
-    Images = Repo.repoIcons
+  object alStaggingActions: TActionList
+    Images = commonResources.repoIcons
     Left = 256
     Top = 144
     object actUnstageSelected: TAction
@@ -257,5 +284,84 @@ object FormCommit: TFormCommit
       OnExecute = actCommitExecute
       OnUpdate = actCommitUpdate
     end
+  end
+  object alFilterActions: TActionList
+    Images = commonResources.repoIcons
+    Left = 368
+    Top = 128
+    object actModifiedOnly: TAction
+      Category = 'view'
+      AutoCheck = True
+      Caption = 'modified'
+      Checked = True
+      Hint = 'toggle modified'
+      ImageIndex = 35
+      OnExecute = refreshAvailable
+    end
+    object actShowUnversioned: TAction
+      Category = 'view'
+      AutoCheck = True
+      Caption = 'unversioned'
+      Checked = True
+      Hint = 'toggle unversioned'
+      ImageIndex = 36
+      OnExecute = refreshAvailable
+    end
+    object actShowIgnored: TAction
+      Category = 'view'
+      AutoCheck = True
+      Caption = 'ignored'
+      Hint = 'toggle ignored'
+      ImageIndex = 37
+      OnExecute = refreshAvailable
+    end
+    object actRefresh: TAction
+      Category = 'view'
+      Caption = 'refresh'
+      Hint = 'refresh'
+      ImageIndex = 38
+      SecondaryShortCuts.Strings = (
+        'Ctrl+R')
+      ShortCut = 116
+      OnExecute = actRefreshExecute
+    end
+  end
+  object ActionManager1: TActionManager
+    ActionBars = <
+      item
+      end
+      item
+        Items = <
+          item
+            Action = actRefresh
+            ImageIndex = 38
+            ShortCut = 116
+          end
+          item
+            Action = actModifiedOnly
+            Caption = '&modified'
+            ImageIndex = 35
+          end
+          item
+            Action = actShowUnversioned
+            Caption = '&unversioned'
+            ImageIndex = 36
+          end
+          item
+            Action = actShowIgnored
+            Caption = '&ignored'
+            ImageIndex = 37
+          end>
+        ActionBar = ActionToolBar2
+      end>
+    LinkedActionLists = <
+      item
+        ActionList = alFilterActions
+        Caption = 'alFilterActions'
+      end>
+    Images = commonResources.repoIcons
+    Left = 344
+    Top = 184
+    StyleName = 'Platform Default'
   end
 end
