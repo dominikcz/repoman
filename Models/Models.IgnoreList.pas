@@ -15,12 +15,17 @@ type
   private
     FFileName: string;
     FDefFileName: string;
+    FCompiledList: TStringList;
   public
     constructor Create;
+    destructor Destroy; override;
+
     procedure Load(const ADir: string = '');
     procedure Compile;
     procedure Save;
-    function Allows(path: string): boolean;
+    procedure SaveDefault;
+    function Allows(path: string): boolean; overload;
+    function Allows(path: string; out ruleIdx: integer): boolean; overload;
   end;
 
 implementation
@@ -34,13 +39,20 @@ uses
 function TIgnoreList.Allows(path: string): boolean;
 var
   i: Integer;
+begin
+  result := Allows(path, i);
+end;
+
+function TIgnoreList.Allows(path: string; out ruleIdx: integer): boolean;
+var
+  i: Integer;
   s: string;
 begin
   result := true;
-  for i := 0 to Count - 1 do
+  for i := 0 to FCompiledList.Count - 1 do
   begin
-    s := strings[i];
-    case TMatchType(Objects[i]) of
+    s := FCompiledList.strings[i];
+    case TMatchType(FCompiledList.Objects[i]) of
       mtContains:
         result := not path.ToLower.Contains(s.ToLower);
       mtEndsWith:
@@ -56,8 +68,16 @@ end;
 constructor TIgnoreList.Create;
 begin
   inherited Create;
+  Duplicates := dupIgnore;
   FFileName := '';
   FDefFileName := TPath.Combine(ExtractFilePath(paramStr(0)), cIgnoreListFileName);
+  FCompiledList := TStringList.Create;
+end;
+
+destructor TIgnoreList.Destroy;
+begin
+  FCompiledList.Free;
+  inherited;
 end;
 
 procedure TIgnoreList.Compile;
@@ -70,38 +90,46 @@ begin
   // ...* => mrStartsWith
   // ... => mtContains
   // konstrukcje typu ...*... czy *...* nie s¹ obslugiwane
+  FCompiledList.Text := self.Text;
   for i := 0 to Count - 1 do
   begin
     s := Strings[i];
     if s.StartsWith('*') then
-      Objects[i] := TObject(ord(mtEndsWith))
+      FCompiledList.Objects[i] := TObject(ord(mtEndsWith))
     else if s.EndsWith('*') then
-      Objects[i] := TObject(ord(mtStartsWith))
+      FCompiledList.Objects[i] := TObject(ord(mtStartsWith))
     else
-      Objects[i] := TObject(ord(mtContains));
-    Strings[i] := StringReplace(s, '*', '', [rfReplaceAll]);
+      FCompiledList.Objects[i] := TObject(ord(mtContains));
+    FCompiledList.Strings[i] := StringReplace(s, '*', '', [rfReplaceAll]);
   end;
 end;
 
 procedure TIgnoreList.Load(const ADir: string = '');
+var
+  lFileName: string;
 begin
+  self.Clear;
+  FCompiledList.Clear;
   FFileName := TPath.Combine(ADir, cIgnoreListFileName);
-  if not FileExists(FFileName) then
-    FFileName := FDefFileName;
   if FileExists(FFileName) then
-  begin
-    self.LoadFromFile(FFileName);
-    self.Compile;
-  end
+    lFileName := FFileName
   else
-    self.Clear;
+    lFileName := FDefFileName;
+  if FileExists(lFileName) then
+  begin
+    LoadFromFile(lFileName);
+    self.Compile;
+  end;
 end;
 
 procedure TIgnoreList.Save;
 begin
-  if FFileName = '' then
-    FFileName := FDefFileName;
   SaveToFile(FFileName);
+end;
+
+procedure TIgnoreList.SaveDefault;
+begin
+  SaveToFile(FDefFileName);
 end;
 
 end.

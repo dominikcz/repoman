@@ -13,6 +13,7 @@ object AddToIgnoreForm: TAddToIgnoreForm
   OldCreateOrder = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
@@ -49,9 +50,6 @@ object AddToIgnoreForm: TAddToIgnoreForm
     TabOrder = 0
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.SelectionOptions = [toMultiSelect]
-    ExplicitLeft = 0
-    ExplicitTop = 73
-    ExplicitHeight = 222
     Columns = <
       item
         Position = 0
@@ -87,6 +85,7 @@ object AddToIgnoreForm: TAddToIgnoreForm
       Anchors = [akLeft, akTop, akRight, akBottom]
       ScrollBars = ssBoth
       TabOrder = 0
+      OnChange = mPatternsChange
     end
   end
   object Panel2: TPanel
@@ -98,8 +97,6 @@ object AddToIgnoreForm: TAddToIgnoreForm
     BevelOuter = bvNone
     ShowCaption = False
     TabOrder = 2
-    ExplicitTop = 296
-    ExplicitWidth = 593
     DesignSize = (
       609
       54)
@@ -124,7 +121,6 @@ object AddToIgnoreForm: TAddToIgnoreForm
       Default = True
       ModalResult = 1
       TabOrder = 1
-      ExplicitLeft = 552
     end
   end
 end

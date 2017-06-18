@@ -80,13 +80,13 @@ object FormCommit: TFormCommit
         Columns = <
           item
             Position = 0
-            Width = 381
+            Width = 360
             WideText = 'available files'
             WideHint = 'shortPath'
           end
           item
             Position = 1
-            Width = 55
+            Width = 65
             WideText = 'state'
             WideHint = 'stateAsStr'
           end>
@@ -202,13 +202,13 @@ object FormCommit: TFormCommit
         Columns = <
           item
             Position = 0
-            Width = 381
+            Width = 360
             WideText = 'staged files'
             WideHint = 'shortPath'
           end
           item
             Position = 1
-            Width = 58
+            Width = 65
             WideText = 'state'
             WideHint = 'stateAsStr'
           end>

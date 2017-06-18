@@ -14,7 +14,6 @@ object FrameCommitView: TFrameCommitView
     Caption = 'leftPanel'
     ShowCaption = False
     TabOrder = 0
-    ExplicitHeight = 612
     object Splitter1: TSplitter
       Left = 0
       Top = 238
@@ -76,7 +75,7 @@ object FrameCommitView: TFrameCommitView
         Columns = <
           item
             Position = 0
-            Width = 400
+            Width = 360
             WideText = 'available files'
             WideHint = 'shortPath'
           end>
@@ -91,7 +90,6 @@ object FrameCommitView: TFrameCommitView
       BevelOuter = bvNone
       Caption = 'pnlStaged'
       TabOrder = 1
-      ExplicitHeight = 259
       object stagingPanel: TPanel
         Left = 0
         Top = 0
@@ -163,14 +161,14 @@ object FrameCommitView: TFrameCommitView
         Header.Font.Height = -11
         Header.Font.Name = 'Tahoma'
         Header.Font.Style = []
+        Header.Height = 17
         Header.Options = [hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        ExplicitHeight = 219
         Columns = <
           item
             Position = 0
-            Width = 400
+            Width = 360
             WideText = 'staged files'
             WideHint = 'shortPath'
           end>
@@ -186,9 +184,6 @@ object FrameCommitView: TFrameCommitView
       Caption = 'pnlCommit'
       ShowCaption = False
       TabOrder = 2
-      ExplicitLeft = -1
-      ExplicitTop = 344
-      ExplicitWidth = 450
       object commitMsg: TMemo
         AlignWithMargins = True
         Left = 0
@@ -202,8 +197,6 @@ object FrameCommitView: TFrameCommitView
         Align = alClient
         ScrollBars = ssBoth
         TabOrder = 0
-        ExplicitTop = 36
-        ExplicitHeight = 153
       end
       object Button5: TButton
         Left = 366
@@ -223,7 +216,6 @@ object FrameCommitView: TFrameCommitView
     end
   end
   object ActionList1: TActionList
-    Images = Repo.repoIcons
     Left = 256
     Top = 144
     object actUnstageSelected: TAction

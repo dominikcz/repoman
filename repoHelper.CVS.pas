@@ -182,7 +182,7 @@ function TRepoHelperCVS.ExecCVSCmd(cmd: string): integer;
 begin
   FLastCmdResult.Clear;
   notifyLogging('cvs ' + cmd);
-  cmd := 'cvs -d '+FCVSROOT+ ' '+ cmd;
+  cmd := '-d '+FCVSROOT+ ' '+ cmd;
   TProcesses.CaptureConsoleOutput('cvs.exe', cmd, hndCommand);
   result := 0;
 end;
@@ -237,6 +237,8 @@ var
   s: string;
   dt: TDateTime;
 begin
+  if root = '' then
+    exit;
   FRootPath := root;
   FEntries.Clear;
   isRootInitialized := false;

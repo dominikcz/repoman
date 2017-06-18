@@ -444,7 +444,6 @@ begin
   FFiles := TFilesList.Create;
   FDirs := TDirsList.Create;
   FIgnoreList := TIgnoreList.Create;
-  FIgnoreList.Load(ExtractFileDir(paramStr(0)));
 
   FVstFileListHelper := TVSTHelper<TFileInfo>.Create;
   FVstFileListHelper.OnGetImageIndex := hndFilesGetImageIndex;
@@ -465,13 +464,9 @@ begin
   FVstDirHelper.Model := FDirs;
   FVstDirHelper.TreeView := MainForm.repoBrowser.dirTree;
 
-  {$IFDEF XPS}
-  FRootPath := 'c:\mccomp\NewPos2014';
-  {$ELSE}
-  FRootPath := 'x:\mccomp\NewPos2014';
-  {$ENDIF}
-
+  FRootPath := FConfig.RootPath;
   FCurrRootPath := FRootPath;
+  FIgnoreList.Load(FRootPath);
 
   FRepoHelper := TRepoHelperCVS.Create;
   FRepoHelper.OnLogging := procedure(buff: string)
@@ -545,7 +540,6 @@ begin
     AddIgnoredForm.mPatterns.Clear;
     for item in list do
       AddIgnoredForm.mPatterns.Lines.Add(item.fullPath);
-    list.Free;
     AddIgnoredForm.OnGetPreview := hndOnGetIgnorePreview;
     if AddIgnoredForm.ShowModal = mrOk then
     begin
@@ -729,17 +723,23 @@ var
   i: Integer;
 begin
   myIgnore := TIgnoreList.Create;
-  myIgnore.AddStrings(filter);
-  myIgnore.Compile;
-  list := TFilesList.Create(false);
-  i := 0;
-  for item in FFiles do
-  begin
-    if myIgnore.Allows(item.fullPath) then
-      list.Add(item);
-    inc(i);
-    if i >= 100 then
-      exit;
+  try
+    myIgnore.AddStrings(filter);
+    myIgnore.Compile;
+    list := TFilesList.Create(false);
+    i := 0;
+    for item in FFiles do
+    begin
+      if not myIgnore.Allows(item.fullPath) then
+      begin
+        inc(i);
+        list.Add(item);
+      end;
+      if i >= 100 then
+        exit;
+    end;
+  finally
+    myIgnore.Free;
   end;
 end;
 

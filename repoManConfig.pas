@@ -19,6 +19,7 @@ type
 
     // repo
     BackupModifiedFiles: boolean;
+    RootPath: string;
 
     // GUI
     ShowToolbarCaptions: boolean;
@@ -44,6 +45,7 @@ begin
   DiffOnWords := false;
   ShowToolbarCaptions := true;
   BackupModifiedFiles := true;
+  RootPath := '';
 
   ExternalEditor := '';
   UseExternalAnnotateEditor := false;
@@ -60,8 +62,9 @@ begin
   self.ExternalEditor := CfgFile.getString('Editors.ExternalEditor', ExternalEditor);
   self.UseExternalAnnotateEditor := CfgFile.getBoolen('Editors.UseExternalAnnotateEditor', UseExternalAnnotateEditor);
 
-  //repos
-  self.BackupModifiedFiles := CfgFile.getBoolen('Repos.BackupModifiedFiles', BackupModifiedFiles);
+  //repo
+  self.BackupModifiedFiles := CfgFile.getBoolen('Repo.BackupModifiedFiles', BackupModifiedFiles);
+  self.RootPath := CfgFile.getString('Repo.RootPath', RootPath);
 
   // GUI
   self.ShowToolbarCaptions := CfgFile.getBoolen('GUI.ShowToolbarCaptions', ShowToolbarCaptions);
@@ -70,6 +73,7 @@ begin
     UseExternalDiff := false;
   if UseExternalAnnotateEditor and (ExternalEditor = '') then
     UseExternalAnnotateEditor := false;
+  cfgFile.SaveJsonFile('repoman.json');
 end;
 
 end.

@@ -22,7 +22,8 @@ type
     Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure edtPatternChange(Sender: TObject);
+    procedure mPatternsChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FOnGetPreview: TGetPreviewEvent;
     FVstPreviewHelper: TVstHelper<TFileInfo>;
@@ -41,18 +42,6 @@ uses
 
 { TAddToIgnoreForm }
 
-procedure TAddToIgnoreForm.edtPatternChange(Sender: TObject);
-var
-  list: TFilesList;
-begin
-  if Assigned(OnGetPreview) then
-  begin
-    OnGetPreview(mPatterns.Lines, list);
-    FVstPreviewHelper.Model.Free;
-    FVstPreviewHelper.Model := list;
-  end;
-end;
-
 procedure TAddToIgnoreForm.FormCreate(Sender: TObject);
 begin
   FVstPreviewHelper := TVstHelper<TFileInfo>.Create;
@@ -62,7 +51,25 @@ end;
 
 procedure TAddToIgnoreForm.FormDestroy(Sender: TObject);
 begin
+  FVstPreviewHelper.Model.Free;
   FVstPreviewHelper.Free;
+end;
+
+procedure TAddToIgnoreForm.FormShow(Sender: TObject);
+begin
+  mPatternsChange(sender);
+end;
+
+procedure TAddToIgnoreForm.mPatternsChange(Sender: TObject);
+var
+  list: TFilesList;
+begin
+  if Assigned(OnGetPreview) then
+  begin
+    OnGetPreview(mPatterns.Lines, list);
+    FVstPreviewHelper.Model.Free;
+    FVstPreviewHelper.Model := list;
+  end;
 end;
 
 end.
